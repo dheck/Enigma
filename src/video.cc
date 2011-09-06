@@ -811,9 +811,6 @@ void video::Init()
     cursor->move(x,y);
 
     SDL_SetEventFilter(event_filter);
-
-
-    UpdateGamma();
 }
 
 void video::Shutdown() 
@@ -880,14 +877,6 @@ void video::SetCaption(const char *str)
 const string& video::GetCaption() 
 {
     return video_engine->get_caption();
-}
-
-void video::UpdateGamma()
-{
-    float gamma = static_cast<float> (app.prefs->getDouble ("Gamma"));
-    if (gamma < 0.25)  
-        gamma = 0.25;  // Windows does not set gamma for values < 0.2271
-    int result = SDL_SetGamma (gamma, gamma, gamma);
 }
 
 void video::Screenshot (const std::string &fname) 

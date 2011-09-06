@@ -156,9 +156,6 @@ namespace video
       FX_* functions below. */
     ecl::Surface *BackBuffer();
     
-    /*! Update gamma correction using current options. */
-    void UpdateGamma();
-
     void               SetCaption (const char *str);
     const std::string& GetCaption();
 
