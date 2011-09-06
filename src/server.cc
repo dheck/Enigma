@@ -35,8 +35,6 @@
 #include "world.hh"
 #include "MusicManager.hh"
 
-#include "enet/enet.h"
-
 #ifdef WIN32
 // SendMessage is a Syscall on Windows, so we simply undefine it to use this
 // name for one of the methods
@@ -147,8 +145,6 @@ namespace
     int currentLevel;
     lev::Index *previousIndex = NULL;
     int previousLevel;
-    ENetAddress        network_address;
-    ENetHost           *network_host       = 0;
 }
 
 void load_level(lev::Proxy *levelProxy, bool isRestart)
@@ -245,8 +241,6 @@ void server::Init()
 void server::Shutdown()
 {
     lua::ShutdownLevel();
-    if (network_host != 0)
-        enet_host_destroy (network_host);
 }
 
 

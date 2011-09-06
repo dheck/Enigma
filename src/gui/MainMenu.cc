@@ -32,9 +32,6 @@
 #include "video.hh"
 #include "world.hh"
 
-#include "netgame.hh"
-
-
 using namespace ecl;
 using namespace std;
 
@@ -53,50 +50,6 @@ namespace enigma { namespace gui {
         enigma::ClearImageCache();
         display::Shutdown();
         display::Init();
-    }
-    
-
-    /* -------------------- NetworkMenu -------------------- */
-    
-    NetworkMenu::NetworkMenu ()
-    {
-        const video::VMInfo *vminfo = video::GetInfo();
-    
-        BuildVList b(this, Rect((vminfo->width - 150)/2,150,150,40), 5);
-        startgame = b.add(new StaticTextButton(N_("Start Game"), this));
-        m_joingame = b.add(new StaticTextButton(N_("Join Game"), this));
-        m_back = b.add(new StaticTextButton(N_("Back"), this));
-    }
-    
-    NetworkMenu::~NetworkMenu ()
-    {
-    }
-    
-    bool NetworkMenu::on_event (const SDL_Event &e)
-    {
-        return false;
-    }
-    
-    void NetworkMenu::on_action(gui::Widget *w)
-    {
-        if (w == startgame) {
-            netgame::Start();
-        } 
-        else if (w == m_joingame) {
-            netgame::Join("localhost", 12345);
-        }
-        if (w == m_back)
-            Menu::quit();
-    }
-    
-    void NetworkMenu::draw_background(ecl::GC &gc)
-    {
-        video::SetCaption (("Enigma - Network Menu"));
-        blit(gc, 0,0, enigma::GetImage("menu_bg", ".jpg"));
-    }
-    
-    void NetworkMenu::tick(double dtime)
-    {
     }
     
 
@@ -453,10 +406,6 @@ namespace enigma { namespace gui {
             MainHelpMenu m;
             m.manage();
     
-    #ifdef ENABLE_EXPERIMENTAL
-        } else if (w == m_netgame) {
-            ShowNetworkMenu();
-    #endif
         } else if (w == quit) {
             Menu::quit();
         } else if (flags.size() > 0) {
@@ -497,10 +446,4 @@ namespace enigma { namespace gui {
         m.manage();
     }
         
-    void ShowNetworkMenu() 
-    {
-        NetworkMenu m;
-        m.manage();
-    }
-
 }} // namespace enigma::gui

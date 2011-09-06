@@ -13,7 +13,6 @@ bstrap ()
 
 echo ""
 bstrap "./lib-src/zipios++"
-bstrap "./lib-src/enet"
 
 echo -n "Bootstrapping ./    "
 if autoheader && aclocal -I m4 && automake --add-missing --foreign --copy && autoconf; then

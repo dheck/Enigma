@@ -126,8 +126,6 @@ namespace
         
         void tick (double dtime);
         void stop() { m_state = cls_idle; }
-        bool network_start();
-        void network_stop();
 
 
         void handle_message(Message *msg);
@@ -193,8 +191,6 @@ namespace
         std::string      m_error_message;
 
         std::auto_ptr<video::TransitionEffect> m_effect;
-        ENetHost   *m_network_host;
-        ENetPeer   *m_server;
 
     private:
         Client (const Client&);
