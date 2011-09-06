@@ -220,6 +220,13 @@ dnl ---------------------------------------
 AC_CHECK_LIB(curl,curl_global_init,,[AC_MSG_ERROR([libcurl is required to compile Enigma])])
 
 dnl ----------------------------------------
+dnl Check for OpenGL
+dnl ---------------------------------------
+AX_HAVE_OPENGL()
+LIBS="$LIBS $GL_LIBS"
+CXXFLAGS="$CXXFLAGS $GL_CFLAGS"
+
+dnl ----------------------------------------
 dnl Activate optimizations when profiling, to get rid of
 dnl inlineable functions.
 dnl ----------------------------------------

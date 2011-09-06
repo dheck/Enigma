@@ -37,6 +37,8 @@
 #include "main.hh"
 #include "ecl.hh"
 #include "SDL.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include <cassert>
 #include <cstdio>
 #include <fstream>
