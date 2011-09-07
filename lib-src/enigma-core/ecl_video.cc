@@ -36,13 +36,6 @@ using namespace ecl;
 
 /* -------------------- Graphics primitives -------------------- */
 
-void ecl::frame (const GC &gc, int x, int y, int w, int h) {
-    hline (gc, x, y, w);
-    hline (gc, x, y+h-1, w);
-    vline (gc, x, y, h);
-    vline (gc, x+w-1, y, h);
-}
-
 void ecl::line (const GC &gc, int x1, int y1, int x2, int y2) {
     gc.drawable->line (gc, x1, y1, x2, y2);
 }
@@ -351,30 +344,14 @@ Surface::make_surface (SDL_Surface *sdls)
 /* `Xlib.h' also defines a type named `Screen' so we have to specify
    the namespace explicitly and cannot simply use a using-declaration. */
 
-ecl::Screen *ecl::Screen::m_instance = 0;
-
-ecl::Screen *
-ecl::Screen::get_instance() {
-    return m_instance;
-}
-
-
 ecl::Screen::Screen (Surface *s)
 : m_surface(s), m_sdlsurface(s->get_surface()), update_all_p(false)
 {
-    assert (m_instance == 0);
-    m_instance = this;
 }
 
 ecl::Screen::Screen (SDL_Surface *s)
 : m_surface (Surface::make_surface(s)), m_sdlsurface(s), update_all_p(false)
 {
-    assert (m_instance == 0);
-    m_instance = this;
-}
-
-ecl::Screen::~Screen() {
-    m_instance = 0;
 }
 
 void ecl::Screen::update_all()

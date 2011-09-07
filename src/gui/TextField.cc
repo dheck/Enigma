@@ -113,7 +113,9 @@ void TextField::draw(ecl::GC &gc, const ecl::Rect &r) {
     if (m_activep || get_parent()->is_key_focus(this)) {
         if (showCursor) {
             set_color(gc, 200,200,200);
-            vline(gc, x, y, h);
+
+// TODO: OPENGL
+//            vline(gc, x, y, h);
         }
         x += w_cursor;
     }

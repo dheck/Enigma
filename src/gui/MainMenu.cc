@@ -224,7 +224,7 @@ namespace enigma { namespace gui {
     }
     
     void MainHelpMenu::draw_background(ecl::GC &gc) {
-        video::SetCaption (("Enigma - Help Menu"));
+        video::SetWindowCaption (("Enigma - Help Menu"));
         blit(gc, 0,0, enigma::GetImage("menu_bg", ".jpg"));
     }
     
@@ -357,7 +357,7 @@ namespace enigma { namespace gui {
     {
         const video::VMInfo *vminfo = video::GetInfo();
     
-        video::SetCaption (("Enigma - Main Menu"));
+        video::SetWindowCaption (("Enigma - Main Menu"));
         sound::StartMenuMusic();
 
         const Texture &bg = GetTexture("menu_bg", ".jpg");

@@ -171,7 +171,7 @@ namespace ecl
 
 	/* ---------- Static methods ---------- */
 
-        //! Create a new surface
+        // Create a new surface from an existing SDL surface
 	static Surface *make_surface (SDL_Surface *s);
 
     protected:
@@ -198,7 +198,6 @@ namespace ecl
     public:
 	Screen (Surface *s);
         Screen (SDL_Surface *s);
-        ~Screen();
 
 	void update_all();
 	void update_rect(const Rect& r);
@@ -213,13 +212,8 @@ namespace ecl
         int width() const;
         int height() const;
 
-	/* ---------- Static methods ---------- */
-
-        static Screen *get_instance();
     private:
         // Variables.
-        static Screen *m_instance;
-
         Surface     *m_surface;
         SDL_Surface *m_sdlsurface;
 	RectList     m_dirtyrects;
@@ -299,12 +293,6 @@ namespace ecl
     }
 
     void line (const GC &gc, int x1, int y1, int x2, int y2);
-    void frame (const GC & gc, int x, int y, int w, int h);
-
-    inline void frame (const GC &gc, const Rect& r) { 
-        frame (gc, r.x, r.y, r.w, r.h);
-    }
-
 
 /* -------------------- Functions -------------------- */
 

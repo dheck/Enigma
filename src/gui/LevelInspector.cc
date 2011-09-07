@@ -578,7 +578,7 @@ LevelInspector::LevelInspector(lev::Proxy *aLevel, bool showDeveloperInfo):
     void LevelInspector::draw_background(ecl::GC &gc) {
         const video::VMInfo *vminfo = video::GetInfo();
         const int vshrink = vminfo->width < 640 ? 1 : 0;
-        video::SetCaption((std::string("Enigma - Level ") + 
+        video::SetWindowCaption((std::string("Enigma - Level ") + 
             (isDeveloperMode ? "Developer " : "") + "Inspector").c_str());
         blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, enigma::GetImage("menu_bg", ".jpg"));
         blit(gc, vminfo->width-vminfo->thumbw-10-hmargin, vmargin, previewImage);

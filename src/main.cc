@@ -401,7 +401,7 @@ void Application::init(int argc, char **argv)
 
     // ----- Initialize video subsystem
     video::Init();
-    video::SetCaption ("Enigma v" PACKAGE_VERSION);
+    video::SetWindowCaption ("Enigma v" PACKAGE_VERSION);
     video::SetMouseCursor(enigma::LoadImage("cur-magic"), 4, 4);
     video::ShowMouse();
     SDL_ShowCursor(0);

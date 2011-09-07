@@ -46,145 +46,24 @@
 #include <sstream>
 #include "config.h"
 
-#define SCREEN ecl::Screen::get_instance()
-
 using namespace std;
 using namespace ecl;
 using namespace video;
 using namespace enigma;
 
-namespace
-{
-    class Video_SDL {
-        SDL_Surface*    sdlScreen;
-        string          caption;
-        ecl::Screen*     screen;
-        bool            initialized;
-    public:
-        Video_SDL();
-        ~Video_SDL();
+namespace {
 
-        bool init(int w, int h, int bpp, bool fullscreen);
-        void toggle_fullscreen();
-        void set_fullscreen(bool on_off);
-        bool is_fullscreen() const;
-        void set_caption(const char *str);
-        const string& get_caption() const { return caption; }
-        ecl::Screen *get_screen() { return screen; }
-    };
+std::string gCaption;
+bool gInitialized = false;
+ecl::Screen *gScreen = NULL;
+SDL_Surface *gSdlScreen = NULL;
 
-}
-
-/* -------------------- Video Engine -------------------- */
-
-Video_SDL::Video_SDL()
-: sdlScreen(0), 
-  screen(0),
-  initialized(false)
-{}
-
-Video_SDL::~Video_SDL() 
-{
-    SDL_WM_GrabInput(SDL_GRAB_OFF);
-//     if (sdlScreen != 0 && fullScreen)
-//         SDL_WM_ToggleFullScreen(sdlScreen);
-    delete screen;
-}
-
-void Video_SDL::set_caption(const char *str) {
-    caption = str;
-    if (initialized)
-        SDL_WM_SetCaption(str, 0);
-}
-
-
-bool Video_SDL::init(int w, int h, int bpp, bool fullscreen)
-{
-    static bool firstInit = true;
-    
-#ifndef MACOSX
-    if (firstInit) {
-        // Set the caption icon -- due to SDL doc it has to be set before first SDL_SetVideoMode() !!
-        // In praxis this SetIcon does not work for Linux, nor is it necessary for OSX.
-        // Just XP with selected "WindowsXP Design" needs this SetIcon.
-        // See video::Init() for icon set for Linux and other Windows versions
-        // Mac icon is set via Makefile 
-        firstInit = false;
-        std::string iconpath;
-        ecl::Surface *es = NULL;
-        if (app.resourceFS->findFile("gfx/enigma_marble.png", iconpath)) { // cannot use ecl::findImageFile !
-            es = ecl::LoadImage(iconpath.c_str());
-            if (es) {
-                SDL_WM_SetIcon(es->get_surface(), NULL);
-            }
-        }
-    }
-#endif
-
-    SDL_WM_SetCaption(caption.c_str(), 0);
-
-    Uint32 flags = SDL_HWSURFACE | SDL_OPENGL;
-    if (fullscreen)
-        flags |= SDL_FULLSCREEN;
-
-    // Try to initialize vide mode, return error code on failure
-    sdlScreen = 0;
-    bpp = SDL_VideoModeOK (w, h, bpp, flags);
-    if (bpp == 0)
-        return false;
-    sdlScreen = SDL_SetVideoMode(w, h, bpp, flags);
-    if (sdlScreen == 0) 
-        return false;
-
-    // Video mode could be set
-    screen = new Screen(sdlScreen);
-
-    glClearColor(255, 0, 0, 0);
-    glClearDepth(1.0f);
-    glViewport(0, 0, w, h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, w, h, 0, 1, -1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glEnable(GL_TEXTURE_2D);
-
-    initialized = true;
-
-    // Hack to hide the cursor after switching between
-    // window/fullscreen mode.
-    SDL_ShowCursor (SDL_ENABLE);
-    SDL_ShowCursor (SDL_DISABLE);
-
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY / 2,
-                        SDL_DEFAULT_REPEAT_INTERVAL / 2);
-
-    return true;
-}
-
-bool Video_SDL::is_fullscreen() const 
-{ 
-    if (sdlScreen)
-        return (sdlScreen->flags & SDL_FULLSCREEN) != 0; 
-    return false;
-}
-
-
-void Video_SDL::set_fullscreen(bool on_off) {
-    if (on_off != is_fullscreen())
-        toggle_fullscreen();
-}
-
-void Video_SDL::toggle_fullscreen() 
-{
-    SDL_WM_ToggleFullScreen (sdlScreen);
 }
 
 
 /* -------------------- Local Variables -------------------- */
 namespace
 {
-    Video_SDL   *video_engine = 0;
     Surface     *back_buffer  = 0;
 
     /*! List of available video modes. */
@@ -530,7 +409,7 @@ bool video::SetInputGrab (bool onoff)
 
 Surface* video::BackBuffer() {
     if (back_buffer==0) {
-        back_buffer= Duplicate(SCREEN->get_surface());
+        back_buffer= Duplicate(gScreen->get_surface());
     }
     return back_buffer;
 }
@@ -611,6 +490,69 @@ bool video::ModeAvailable (VideoModes vm)
 }
 
 
+bool InitVideoMode(int w, int h, int bpp, bool fullscreen)
+{
+    static bool firstInit = true;
+    
+#ifndef MACOSX
+    if (firstInit) {
+        // Set the caption icon -- due to SDL doc it has to be set before first SDL_SetVideoMode() !!
+        // In praxis this SetIcon does not work for Linux, nor is it necessary for OSX.
+        // Just XP with selected "WindowsXP Design" needs this SetIcon.
+        // See video::Init() for icon set for Linux and other Windows versions
+        // Mac icon is set via Makefile 
+        firstInit = false;
+        std::string iconpath;
+        ecl::Surface *es = NULL;
+        if (app.resourceFS->findFile("gfx/enigma_marble.png", iconpath)) { // cannot use ecl::findImageFile !
+            es = ecl::LoadImage(iconpath.c_str());
+            if (es) {
+                SDL_WM_SetIcon(es->get_surface(), NULL);
+            }
+        }
+    }
+#endif
+
+    SDL_WM_SetCaption(gCaption.c_str(), 0);
+
+    Uint32 flags = SDL_HWSURFACE | SDL_OPENGL;
+    if (fullscreen)
+        flags |= SDL_FULLSCREEN;
+
+    // Try to initialize vide mode, return error code on failure
+    bpp = SDL_VideoModeOK (w, h, bpp, flags);
+    if (bpp == 0)
+        return false;
+    gSdlScreen = SDL_SetVideoMode(w, h, bpp, flags);
+    if (gSdlScreen == NULL)
+        return false;
+
+    // Video mode could be set
+    gScreen = new Screen(gSdlScreen);
+
+    glClearColor(255, 0, 0, 0);
+    glClearDepth(1.0f);
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, w, h, 0, 1, -1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glEnable(GL_TEXTURE_2D);
+
+    gInitialized = true;
+
+    // Hack to hide the cursor after switching between
+    // window/fullscreen mode.
+    SDL_ShowCursor(SDL_ENABLE);
+    SDL_ShowCursor(SDL_DISABLE);
+
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY / 2,
+            SDL_DEFAULT_REPEAT_INTERVAL / 2);
+
+    return true;
+}
+
 void video::Init() 
 {
     static bool isInit = false;
@@ -651,9 +593,6 @@ void video::Init()
     
     int oldvidmode = vidmode;
 
-    video_engine = new Video_SDL();
-
-
     assert(bpp==16 || bpp==32);
     int fallback_sequence = 1;
     while (true) {
@@ -663,7 +602,7 @@ void video::Init()
 
         if (ModeAvailable (static_cast<VideoModes> (vidmode))
             && vm_available (w, h, bpp, isFullScreen)
-            && video_engine->init (w, h, bpp, isFullScreen)) 
+            && InitVideoMode(w, h, bpp, isFullScreen)) 
         {
             // Success!
             break;
@@ -697,72 +636,85 @@ void video::Init()
 void video::Shutdown() 
 {
     SDL_SetEventFilter(0);
-    delete video_engine;
+    SDL_WM_GrabInput(SDL_GRAB_OFF);
+    delete gScreen;
     delete back_buffer;
-    video_engine = 0;
     back_buffer = 0;
 }
 
-void video::ChangeVideoMode() 
+void video::ChangeVideoMode()
 {
     Shutdown();
     Init();
 }
 
 ecl::Screen * video::GetScreen() {
-    return SCREEN;
+    return gScreen;
 }
 
 VideoModes video::GetVideoMode() {
     return current_video_mode;
 }
 
+
+// void Video_SDL::toggle_fullscreen() 
+// {
+// }
+
+
 bool video::IsFullScreen()
 {
-    return video_engine->is_fullscreen();
+    if (SDL_Surface *s = gSdlScreen)
+        return (s->flags & SDL_FULLSCREEN) != 0; 
+    return false;
 }
 
 int video::GetColorDepth() {
-    return SCREEN->get_surface()->bipp();
+    return gSdlScreen->format->BitsPerPixel;
 }
 
 bool video::SetFullscreen(bool on) 
 {
+    bool is_fullscreen = IsFullScreen();
     if ((on && video_modes[current_video_mode].f_available) || 
             (!on && video_modes[current_video_mode].w_available)) {
-        video_engine->set_fullscreen(on);
-        bool is_fullscreen = video_engine->is_fullscreen();
-        if (on == is_fullscreen) {
+
+        if (on != is_fullscreen)
+            SDL_WM_ToggleFullScreen(gSdlScreen);
+
+        is_fullscreen = IsFullScreen();
+        if (on == is_fullscreen)
             app.prefs->setProperty("FullScreen", is_fullscreen);
-        }
     }
-    return video::IsFullScreen();
+    return is_fullscreen;
 }
 
 bool video::ToggleFullscreen() 
 {
-    return SetFullscreen (!video_engine->is_fullscreen());
+    return SetFullscreen (!IsFullScreen());
 }
 
-void video::SetCaption(const char *str) 
+void video::SetWindowCaption(const char *str) 
 {
-    video_engine->set_caption(str);
+    gCaption = str;
+    if (gInitialized)
+        SDL_WM_SetCaption(str, 0);
 }
 
-const string& video::GetCaption() 
+const string& video::GetWindowCaption() 
 {
-    return video_engine->get_caption();
+    return gCaption;
 }
 
 void video::Screenshot (const std::string &fname) 
 {
     // auto-create the directory if necessary
     string directory;
-    if (ecl::split_path (fname, &directory, 0) && !ecl::FolderExists(directory)) {
-        ecl::FolderCreate (directory);
+    if (ecl::split_path(fname, &directory, 0) && !ecl::FolderExists(directory)) {
+        ecl::FolderCreate(directory);
     }
 
-    ecl::SavePNG (ecl::Grab(SCREEN->get_surface(), video_modes[current_video_mode].area), fname);
+    ecl::SavePNG (ecl::Grab(gScreen->get_surface(), video_modes[current_video_mode].area), fname);
     enigma::Log << "Wrote screenshot to '" << fname << "\n";
 }
 
@@ -770,8 +722,7 @@ void video::Screenshot (const std::string &fname)
 
 void video::FX_Fade(FadeMode mode) 
 {
-    ecl::Screen *screen = ecl::Screen::get_instance();
-    Surface *d = screen->get_surface();
+    Surface *d = gScreen->get_surface();
     const double fadesec = 0.6;
     double v = 255/fadesec;
 
@@ -788,8 +739,8 @@ void video::FX_Fade(FadeMode mode)
         box(gc, d->size());
         buffer->set_alpha(int(a));
         blit(gc, 0,0,buffer);
-        screen->update_all();
-        screen->flush_updates();
+        gScreen->update_all();
+        gScreen->flush_updates();
 
         dt = (SDL_GetTicks()-otime)/1000.0;
         if (mode==FADEIN && (a+=v*dt) > 255)
@@ -803,8 +754,8 @@ void video::FX_Fade(FadeMode mode)
         blit(gc, 0,0,buffer);
     } else
         box (gc, d->size());
-    screen->update_all();
-    screen->flush_updates();
+    gScreen->update_all();
+    gScreen->flush_updates();
     delete buffer;
 }
 
@@ -818,7 +769,7 @@ void video::FX_Fly (Surface *newscr, int originx, int originy)
     double origx = originx;
     double origy = originy;
 
-    Screen *scr = SCREEN;
+    Screen *scr = gScreen;
     GC scrgc(scr->get_surface());
 
     while (rest_time > 0)
@@ -864,7 +815,7 @@ namespace
 Effect_Push::Effect_Push(ecl::Surface *newscr_, int originx_, int originy_)
 : rest_time (0.7),
   newscr (newscr_),
-  oldscr (Duplicate(SCREEN->get_surface())),
+  oldscr (Duplicate(gScreen->get_surface())),
   originx (originx_),
   originy (originy_),
   velx (-2 * originx / rest_time),
@@ -879,7 +830,7 @@ Effect_Push::Effect_Push(ecl::Surface *newscr_, int originx_, int originy_)
 
 void Effect_Push::tick (double dtime)
 {
-    Screen *scr = SCREEN;
+    Screen *scr = gScreen;
     GC scrgc(scr->get_surface());
 
     if (rest_time > 0) {
@@ -918,8 +869,8 @@ bool Effect_Push::finished() const
 TransitionEffect *
 video::MakeEffect (TransitionModes tm, ecl::Surface *newscr)
 {
-    int scrw = SCREEN->width();
-    int scrh = SCREEN->height();
+    int scrw = gScreen->width();
+    int scrh = gScreen->height();
 
     switch (tm) {
     case TM_PUSH_RANDOM: {
@@ -941,8 +892,8 @@ video::MakeEffect (TransitionModes tm, ecl::Surface *newscr)
 
 
 void video::ShowScreen (TransitionModes tm, Surface *newscr) {
-    int scrw = SCREEN->width();
-    int scrh = SCREEN->height();
+    int scrw = gScreen->width();
+    int scrh = gScreen->height();
 
     switch (tm) {
     case TM_RANDOM:

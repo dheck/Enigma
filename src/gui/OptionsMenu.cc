@@ -308,7 +308,7 @@ namespace enigma { namespace gui {
     
     OptionsMenu::OptionsMenu(ecl::Surface *background_)
     : back(NULL),  //(new StaticTextButton(N_("Back"), this)),
-      background(background_), previous_caption(video::GetCaption()),
+      background(background_), previous_caption(video::GetWindowCaption()),
       pagesVList(NULL), commandHList(NULL), optionsVList(NULL),
       language(NULL), but_main_options(NULL), but_video_options(NULL),
       but_audio_options(NULL), but_config_options(NULL), fullscreen(NULL),
@@ -321,7 +321,7 @@ namespace enigma { namespace gui {
     }
 
     OptionsMenu::~OptionsMenu() {
-        video::SetCaption(previous_caption.c_str());
+        video::SetWindowCaption(previous_caption.c_str());
     }
 
     void OptionsMenu::open_page(OptionsPage new_page) {
@@ -638,7 +638,7 @@ namespace enigma { namespace gui {
     void OptionsMenu::draw_background(ecl::GC &gc)
     {
         const video::VMInfo *vminfo = video::GetInfo();
-        video::SetCaption(("Enigma - Options Menu"));
+        video::SetWindowCaption(("Enigma - Options Menu"));
     //     blit(gc, 0,0, enigma::GetImage("menu_bg"));
         blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, background);
     }

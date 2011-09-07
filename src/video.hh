@@ -156,8 +156,8 @@ namespace video
       FX_* functions below. */
     ecl::Surface *BackBuffer();
     
-    void               SetCaption (const char *str);
-    const std::string& GetCaption();
+    void               SetWindowCaption (const char *str);
+    const std::string& GetWindowCaption();
 
     /*! Take a screenshot and save it as a PNG to file FNAME. */
     void Screenshot (const std::string &fname);

@@ -113,16 +113,16 @@ void AreaManager::invalidate_area(const ecl::Rect &r) {
 
 void AreaManager::invalidate_all() {
     dirtyrects.clear();
-    dirtyrects.push_back(SCREEN->size());
+    dirtyrects.push_back(video::GetScreen()->size());
 }
 
 void AreaManager::refresh() {
     if (!dirtyrects.empty()) {
         video::HideMouse();
-        GC gc(SCREEN->get_surface());
+        GC gc(video::GetScreen()->get_surface());
         for (RectList::iterator i = dirtyrects.begin(); i!=dirtyrects.end(); ++i) {
             top_container->draw(gc, *i);
-            SCREEN->update_rect(*i);
+            video::GetScreen()->update_rect(*i);
         }
         video::ShowMouse();
         dirtyrects.clear();
@@ -637,67 +637,60 @@ void Button::draw(ecl::GC &gc, const ecl::Rect &r) {
 
     ecl::Surface *s = enigma::GetImage(m_activep ? "buttonhl" : "button");
 
-    if (s) {                    // Ugly, but hey, it works
-        Rect srcrect (0,0,borderw, borderw);
-        Rect area = get_area();
+    if (!s) 
+        return;
+    Rect srcrect (0,0,borderw, borderw);
+    Rect area = get_area();
 
-        // background
-        if (highlight)
-            set_color (gc, 70, 70, 70);
-        else
-            set_color (gc, 0,0,0);
-        box (gc, smaller(area, borderw));
-
+    // background
+    if (highlight)
+        set_color (gc, 70, 70, 70);
+    else
         set_color (gc, 0,0,0);
-        // corners
-        blit (gc, area.x, area.y, s, srcrect);
-        srcrect.x += s->width()-borderw;
-        blit (gc, area.x+area.w-borderw, area.y, s, srcrect);
-        srcrect.x = 0;
-        srcrect.y += s->height()-borderw;
-        blit (gc, area.x, area.y+area.h-borderw, s, srcrect);
-        srcrect.x += s->width()-borderw;
-        blit (gc, area.x+area.w-borderw, area.y+area.h-borderw, s, srcrect);
+    box (gc, smaller(area, borderw));
 
-        // horizontal borders
-        {
-            int tilew = s->width() - 2*borderw;
-            int ntiles = (area.w - 2*borderw) / tilew;
-            int x = area.x + borderw;
-            for (int i=0; i<ntiles; ++i) {
-                blit (gc, x, area.y, s, Rect (borderw, 0, tilew, borderw));
-                blit (gc, x, area.y+area.h-borderw, s,
-                      Rect (borderw, s->height()-borderw, tilew, borderw));
-                x += tilew;
-            }
-            int restw = (area.w - 2*borderw) - tilew*ntiles;
-            blit (gc, x, area.y, s, Rect (borderw, 0, restw, borderw));
+    set_color (gc, 0,0,0);
+    // corners
+    blit (gc, area.x, area.y, s, srcrect);
+    srcrect.x += s->width()-borderw;
+    blit (gc, area.x+area.w-borderw, area.y, s, srcrect);
+    srcrect.x = 0;
+    srcrect.y += s->height()-borderw;
+    blit (gc, area.x, area.y+area.h-borderw, s, srcrect);
+    srcrect.x += s->width()-borderw;
+    blit (gc, area.x+area.w-borderw, area.y+area.h-borderw, s, srcrect);
+
+    // horizontal borders
+    {
+        int tilew = s->width() - 2*borderw;
+        int ntiles = (area.w - 2*borderw) / tilew;
+        int x = area.x + borderw;
+        for (int i=0; i<ntiles; ++i) {
+            blit (gc, x, area.y, s, Rect (borderw, 0, tilew, borderw));
             blit (gc, x, area.y+area.h-borderw, s,
-                  Rect (borderw, s->height()-borderw, restw, borderw));
+                    Rect (borderw, s->height()-borderw, tilew, borderw));
+            x += tilew;
         }
-        // vertical borders
-        {
-            int tileh = s->height() - 2*borderw;
-            int ntiles = (area.h - 2*borderw) / tileh;
-            int y = area.y + borderw;
-            for (int i=0; i<ntiles; ++i) {
-                blit (gc, area.x, y, s, Rect (0, borderw, borderw, tileh));
-                blit (gc, area.x+area.w-borderw, y, s,
-                      Rect (s->width()-borderw, borderw, borderw, tileh));
-                y += tileh;
-            }
-            int resth = (area.h - 2*borderw) - tileh*ntiles;
-            blit (gc, area.x, y, s, Rect (0, borderw, borderw, resth));
-            blit (gc, area.x+area.w-borderw, y, s,
-                  Rect (s->width()-borderw, borderw, borderw, resth));
-        }
+        int restw = (area.w - 2*borderw) - tilew*ntiles;
+        blit (gc, x, area.y, s, Rect (borderw, 0, restw, borderw));
+        blit (gc, x, area.y+area.h-borderw, s,
+                Rect (borderw, s->height()-borderw, restw, borderw));
     }
-    else {
-        set_color (gc, 0,0,0);
-        box (gc, r);
-        set_color (gc, 160,160,160);
-        frame (gc, r);
-        frame (gc, smaller(r, 1));
+    // vertical borders
+    {
+        int tileh = s->height() - 2*borderw;
+        int ntiles = (area.h - 2*borderw) / tileh;
+        int y = area.y + borderw;
+        for (int i=0; i<ntiles; ++i) {
+            blit (gc, area.x, y, s, Rect (0, borderw, borderw, tileh));
+            blit (gc, area.x+area.w-borderw, y, s,
+                    Rect (s->width()-borderw, borderw, borderw, tileh));
+            y += tileh;
+        }
+        int resth = (area.h - 2*borderw) - tileh*ntiles;
+        blit (gc, area.x, y, s, Rect (0, borderw, borderw, resth));
+        blit (gc, area.x+area.w-borderw, y, s,
+                Rect (s->width()-borderw, borderw, borderw, resth));
     }
 }
 
