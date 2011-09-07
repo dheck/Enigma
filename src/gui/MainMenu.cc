@@ -48,6 +48,7 @@ namespace enigma { namespace gui {
         video::ChangeVideoMode();
         LevelPreviewCache::instance()->clear();
         enigma::ClearImageCache();
+        enigma::ClearTextures();
         display::Shutdown();
         display::Init();
     }

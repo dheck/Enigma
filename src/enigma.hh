@@ -110,7 +110,7 @@ namespace enigma {
     void ClearImageCache();
 
 const ecl::Texture &GetTexture(const char *name, const char *ext = ".png");
-
+void ClearTextures();
 
 
 /* -------------------- Direction, DirectionBits -------------------- */

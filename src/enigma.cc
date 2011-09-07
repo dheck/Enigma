@@ -415,6 +415,14 @@ const ecl::Texture &GetTexture(const char *name, const char *ext) {
     return it->second;
 }
 
+void ClearTextures() {
+    std::vector<GLuint> ids(textureCache.size());
+    TextureCache::iterator i = textureCache.begin(), e = textureCache.end();
+    for (; i!=e; i++)
+        ids.push_back(i->second.id);
+    textureCache.clear();
+    glDeleteTextures(ids.size(), &ids[0]);
+}
 
 
 } // namespace enigma
