@@ -23,6 +23,8 @@
 #include "ecl_geom.hh"
 
 #include "SDL.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 namespace ecl
 {

@@ -32,6 +32,7 @@
 
 #include "enigma.hh"
 #include "video.hh"
+#include "texture.hh"
 #include "lua.hh"
 #include "options.hh"
 #include "main.hh"
@@ -72,40 +73,6 @@ namespace
         ecl::Screen *get_screen() { return screen; }
     };
 
-    class MouseCursor {
-    public:
-        MouseCursor ();
-        ~MouseCursor();
-
-        void set_image (ecl::Surface *s, int hotx_, int hoty_);
-        void move (int newx, int newy);
-        void redraw ();         // Redraw if position/image changed
-        void draw();            // Draw cursor if visible
-        void show ();
-        void hide ();
-        Rect get_rect() const;
-        Rect get_oldrect() const;
-
-	bool has_changed() { return changedp; }
-        int get_x() const { return x; }
-        int get_y() const { return y; }
-
-    private:
-        // Private methods
-        void grab_bg ();
-        void init_bg();
-        void restore_bg();
-
-        // Variables
-        Surface *background;    // Copy of screen contents behind cursor
-        Surface *cursor;        // Pixmap of the cursor
-
-        int      x, y;
-        int      oldx, oldy;
-        int      hotx, hoty;    // Coordinates of hotspot inside cursor image
-        int      visible;
-        bool     changedp;
-    };
 }
 
 /* -------------------- Video Engine -------------------- */
@@ -156,7 +123,7 @@ bool Video_SDL::init(int w, int h, int bpp, bool fullscreen)
 
     SDL_WM_SetCaption(caption.c_str(), 0);
 
-    Uint32 flags = SDL_SWSURFACE;
+    Uint32 flags = SDL_HWSURFACE | SDL_OPENGL;
     if (fullscreen)
         flags |= SDL_FULLSCREEN;
 
@@ -171,16 +138,19 @@ bool Video_SDL::init(int w, int h, int bpp, bool fullscreen)
 
     // Video mode could be set
     screen = new Screen(sdlScreen);
+
+    glClearColor(255, 0, 0, 0);
+    glClearDepth(1.0f);
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, w, h, 0, 1, -1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glEnable(GL_TEXTURE_2D);
+
     initialized = true;
 
-#if 0
-    // the Mac SDL port seems to ignore the following ShowCursor,
-    // so we just set the Cursor to be invisible.
-    SDL_Cursor *hiddenCursor=SDL_CreateCursor(NULL, NULL, 0, 0, 0, 0);
-    SDL_SetCursor(hiddenCursor);
-    SDL_FreeCursor(hiddenCursor);
-#endif
-    
     // Hack to hide the cursor after switching between
     // window/fullscreen mode.
     SDL_ShowCursor (SDL_ENABLE);
@@ -211,123 +181,10 @@ void Video_SDL::toggle_fullscreen()
 }
 
 
-/* -------------------- MouseCursor -------------------- */
-
-MouseCursor::MouseCursor ()
-: background(0), cursor(0)
-{
-    oldx = oldy = 0;
-    hotx = hoty = 0;
-    visible = 0;
-    changedp = true;
-}
-
-MouseCursor::~MouseCursor() {
-    delete background;
-    delete cursor;
-}
-
-void MouseCursor::set_image (ecl::Surface *s, int hx, int hy) {
-    delete cursor;
-    cursor = s;
-    hotx   = hx;
-    hoty   = hy;
-
-    if (visible > 0) {
-        init_bg();
-    }
-}
-
-void MouseCursor::draw () {
-    if (visible > 0) {
-        grab_bg();
-
-        GC gc(SCREEN->get_surface());
-        blit (gc, x-hotx, y-hoty, cursor);
-        SCREEN->update_rect (get_rect());
-
-        changedp = false;
-    }
-}
-
-void MouseCursor::redraw () {
-    if (visible > 0 && changedp) {
-        restore_bg ();
-        draw();
-    }
-}
-
-void MouseCursor::move(int newx, int newy) {
-    x        = newx;
-    y        = newy;
-    changedp = true;
-}
-
-void MouseCursor::show () {
-    if (++visible == 1) {
-        init_bg();
-        changedp=true;
-    }
-}
-
-void MouseCursor::hide () {
-    if (--visible == 0) {
-        changedp = true;
-        restore_bg();
-        delete background;
-        background=0;
-    }
-}
-
-Rect MouseCursor::get_rect() const {
-    int scrx=x-hotx;
-    int scry=y-hoty;
-    return Rect(scrx,scry,cursor->width(), cursor->height());
-}
-
-Rect MouseCursor::get_oldrect() const {
-    int scrx=oldx-hotx;
-    int scry=oldy-hoty;
-    return Rect(scrx,scry,cursor->width(), cursor->height());
-}
-
-void MouseCursor::init_bg() {
-    assert (visible > 0);
-    assert (cursor != 0);
-
-    if (background != 0) {
-        delete background;
-    }
-
-    background = ecl::MakeSurfaceLike (cursor->width(),
-                                      cursor->height(),
-                                      SCREEN->get_surface());
-    grab_bg();
-}
-
-void MouseCursor::grab_bg () {
-    assert (background != 0);
-
-    GC gc(background);
-    blit (gc, 0,0, SCREEN->get_surface(), get_rect());
-
-    oldx=x;
-    oldy=y;
-}
-
-void MouseCursor::restore_bg () {
-    if (background) {
-        GC gc(SCREEN->get_surface());
-        blit (gc, oldx-hotx, oldy-hoty, background);
-        SCREEN->update_rect (get_oldrect());
-    }
-}
-
 /* -------------------- Local Variables -------------------- */
 namespace
 {
     Video_SDL   *video_engine = 0;
-    MouseCursor *cursor       = 0;
     Surface     *back_buffer  = 0;
 
     /*! List of available video modes. */
@@ -564,46 +421,75 @@ namespace
         return false;
     }
 
-/*! This function is installed as an event filter by video::Init.  It
-  intercepts mouse motions, which are used to update the position of
-  the mouse cursor (but passed on to the event queue) */
-    int event_filter(const SDL_Event *e)
-    {
-        if (e->type == SDL_MOUSEMOTION) {
-            cursor->move(e->motion.x, e->motion.y);
-            cursor->redraw();
-        }
-        return 1;
-    }
-
 }
 
 
-/* -------------------- Functions -------------------- */
+/* -------------------- MouseCursor -------------------- */
 
+namespace {
 
+struct MouseCursor {
+    Texture tex;
+    int x, y;
+    int hotx, hoty;    // Coordinates of hotspot inside cursor image
+    int visible;
+};
+
+MouseCursor cursor;
+
+/** This function is installed as an event filter by MouseInit. It
+intercepts mouse motions, which are used to update the position of the mouse
+cursor (but passed on to the event queue) */
+int mouseEventFilter(const SDL_Event *e)
+{
+    if (e->type == SDL_MOUSEMOTION) {
+        cursor.x = e->motion.x; 
+        cursor.y = e->motion.y;
+    }
+    return 1;
+}
+
+} // namespace
 
 void video::SetMouseCursor(ecl::Surface *s, int hotx, int hoty) {
-    cursor->set_image(s, hotx, hoty);
-    cursor->redraw();
+    if (cursor.tex.id != 0)
+        glDeleteTextures(1, &cursor.tex.id);
+    CreateTexture(s, &cursor.tex);
+    delete s;
+    cursor.hotx   = hotx;
+    cursor.hoty   = hoty;
 }
 
 void video::HideMouse() {
-    cursor->hide();
-    cursor->redraw();
+    cursor.visible--;
 }
 
 void video::ShowMouse() {
-    cursor->show();
-    cursor->redraw();
+    cursor.visible++;
+}
+
+void video::DrawMouse() {
+    if (cursor.visible > 0)
+        blit(cursor.tex, cursor.x-cursor.hotx, cursor.y-cursor.hoty);
 }
 
 int video::Mousex() {
-    return cursor->get_x();
+    return cursor.x;
 }
 
 int video::Mousey() {
-    return cursor->get_y();
+    return cursor.y;
+}
+
+void video::MouseInit() {
+    SDL_GetMouseState(&cursor.x, &cursor.y);
+    SDL_SetEventFilter(mouseEventFilter);
+}
+
+void video::MouseShutdown() {
+    if (cursor.tex.id != 0)
+        glDeleteTextures(1, &cursor.tex.id);
+    cursor.tex.id = 0;
 }
 
 /* -------------------- Input grabbing -------------------- */
@@ -805,33 +691,22 @@ void video::Init()
         SDL_WM_SetIcon(icn->get_surface(), NULL);
 #endif
 
-    cursor = new MouseCursor;
-    int x, y;
-    SDL_GetMouseState(&x, &y);
-    cursor->move(x,y);
-
-    SDL_SetEventFilter(event_filter);
+    MouseInit();
 }
 
 void video::Shutdown() 
 {
     SDL_SetEventFilter(0);
     delete video_engine;
-    delete cursor;
     delete back_buffer;
     video_engine = 0;
-    cursor = 0;
     back_buffer = 0;
 }
 
 void video::ChangeVideoMode() 
 {
-    MouseCursor *oldcursor = cursor;
-    cursor = 0;
     Shutdown();
     Init();
-    delete cursor;
-    cursor = oldcursor;
 }
 
 ecl::Screen * video::GetScreen() {

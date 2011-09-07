@@ -180,8 +180,11 @@ namespace video
     void SetMouseCursor(ecl::Surface *s, int hotx, int hoty);
     void HideMouse();
     void ShowMouse();
+    void DrawMouse();
     int Mousex();
     int Mousey();
+    void MouseInit();
+    void MouseShutdown();
 
 /* -------------------- Visual effects -------------------- */
 

@@ -77,9 +77,11 @@ namespace enigma { namespace gui {
         SDL_Event e;
         Uint32 enterTickTime = SDL_GetTicks(); // protection against ESC D.o.S. attacks
         while (SDL_PollEvent(&e)) {}  // clear event queue
-        draw_all();
         while (!(quitp || abortp)) {
-            SCREEN->flush_updates();
+            draw_all();
+            video::DrawMouse();
+            SDL_GL_SwapBuffers();
+//             SCREEN->flush_updates();
             while (SDL_PollEvent(&e)) {
                 handle_event(e);
                 if (app.bossKeyPressed) return true;

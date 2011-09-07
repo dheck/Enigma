@@ -23,6 +23,7 @@
 #include "gui/InfoMenu.hh"
 #include "gui/LevelPackMenu.hh"
 #include "gui/LevelPreviewCache.hh"
+#include "texture.hh"
 #include "display.hh"
 #include "ecl.hh"
 #include "main.hh"
@@ -350,25 +351,30 @@ namespace enigma { namespace gui {
             }
         }
     }
-    
+
+
     void MainMenu::draw_background(ecl::GC &gc) 
     {
         const video::VMInfo *vminfo = video::GetInfo();
     
         video::SetCaption (("Enigma - Main Menu"));
         sound::StartMenuMusic();
+
+        const Texture &bg = GetTexture("menu_bg", ".jpg");
     
-        blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, enigma::GetImage("menu_bg", ".jpg"));
-    
-        Font *f = enigma::GetFont("levelmenu");
-        Surface * logo(enigma::GetImage("enigma_logo3"));
-        int x0=(vminfo->width - logo->width())/2;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(bg, vminfo->mbg_offsetx, vminfo->mbg_offsety);
+
+        const Texture &logo = GetTexture("enigma_logo3");
+        int x0=(vminfo->width - logo.width)/2;
         int y0[] = {0, 50, 60, 70, 80};
         // parameters to use when flags are not at top: {0, 30, 40, 50, 60};
 #ifdef ENABLE_EXPERIMENTAL
         y0[1] = 30;
 #endif
-        blit(gc, x0, y0[vminfo->tt], logo);
+        blit(logo, x0, y0[vminfo->tt]);
+
+        Font *f = enigma::GetFont("levelmenu");
         f->render (gc, 5, vminfo->height - 20, app.getVersionInfo().c_str());
     }
     
