@@ -216,7 +216,6 @@ namespace
         TTF_Font *font;
         SDL_Color fgcolor;
 
-
         // Inhibit copying
         TrueTypeFont (const TrueTypeFont &);
         TrueTypeFont &operator= (const TrueTypeFont &);
@@ -266,22 +265,27 @@ int TrueTypeFont::get_width(char c) {
 
 Surface *TrueTypeFont::render (const char *str) 
 {
-    SDL_Surface *s = 0;
     SDL_Color bgcolor = { 0, 0, 0, 0 };
-
-    s = TTF_RenderUTF8_Shaded (font, str, fgcolor, bgcolor);
+    SDL_Surface *s = TTF_RenderUTF8_Shaded (font, str, fgcolor, bgcolor);
     if (s) {
         SDL_SetColorKey (s, SDL_SRCCOLORKEY,0);
         return Surface::make_surface (s);
     }
-    return MakeSurface(0, get_height(), 16);
+    return MakeSurface(0, get_height(), 32);
 }
 
 void TrueTypeFont::render (const GC &gc, int x, int y, const char *str) 
 {
-    std::auto_ptr<Surface> s (render (str));
-    if (s.get())
-        blit (gc, x, y, s.get());
+    Surface *s = render(str);
+    Texture tex;
+    SDL_Surface *ss = SDL_CreateRGBSurface(0, s->width(), s->height(), 32,
+            0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    SDL_BlitSurface(s->get_surface(), NULL, ss, NULL);
+    CreateTexture(ss, &tex);
+    blit(tex, x, y);
+    glDeleteTextures(1, &tex.id);
+    delete s;
+    SDL_FreeSurface(ss);
 }
 
 int TrueTypeFont::get_width(const char *str, Font * altFont) 

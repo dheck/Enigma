@@ -389,4 +389,32 @@ void ClearImageCache() {
     image_cache.clear();
 }
 
+// -------------------- Texture Cache --------------------
+
+namespace {
+typedef std::map<std::string, ecl::Texture> TextureCache;
+TextureCache textureCache;
+}
+
+
+
+const ecl::Texture &GetTexture(const char *name, const char *ext) {
+    std::string filename;
+    if (!app.resourceFS->findImageFile (string(name) + ext, filename)) 
+        return ecl::dummyTexture;
+
+    TextureCache::iterator it = textureCache.find(filename);
+    if (it == textureCache.end()) {
+        ecl::Surface *img = ecl::LoadImage(filename.c_str());
+        if (img == NULL)
+            return ecl::dummyTexture;
+        ecl::Texture tex;
+        CreateTexture(img->get_surface(), &tex);
+        it = textureCache.insert(make_pair(filename, tex)).first;
+    }
+    return it->second;
+}
+
+
+
 } // namespace enigma

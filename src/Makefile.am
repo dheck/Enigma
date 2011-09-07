@@ -115,8 +115,6 @@ enigma_SOURCES = 		\
 	stones.cc 		\
 	stones.hh 		\
 	stones_internal.hh 	\
-	texture.cc 		\
-	texture.hh		\
 	Utf8ToXML.cc		\
 	Utf8ToXML.hh		\
 	util.cc 		\

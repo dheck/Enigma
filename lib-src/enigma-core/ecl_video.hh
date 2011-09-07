@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002,2003 Daniel Heck
+ * Copyright (C) 2002,2003,2011 Daniel Heck
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,8 +26,21 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-namespace ecl
-{
+namespace ecl {
+
+// -------------------- Textures --------------------
+
+struct Texture {
+    GLuint id;
+    int width, height;
+    bool alpha;
+};
+
+extern Texture dummyTexture;
+
+void CreateTexture(SDL_Surface *s, Texture *tex);
+void blit(const Texture &tex, int x, int y);
+
 
 /* -------------------- Colors -------------------- */
 

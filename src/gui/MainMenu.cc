@@ -23,7 +23,6 @@
 #include "gui/InfoMenu.hh"
 #include "gui/LevelPackMenu.hh"
 #include "gui/LevelPreviewCache.hh"
-#include "texture.hh"
 #include "display.hh"
 #include "ecl.hh"
 #include "main.hh"

@@ -37,6 +37,7 @@ namespace ecl
     class Font;
 
     // video.hh
+    struct Texture;
     class Drawable;
     class GC;
     class Screen;

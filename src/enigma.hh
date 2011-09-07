@@ -109,6 +109,10 @@ namespace enigma {
     ecl::Surface *RegisterImage (const char *name, ecl::Surface *s);
     void ClearImageCache();
 
+const ecl::Texture &GetTexture(const char *name, const char *ext = ".png");
+
+
+
 /* -------------------- Direction, DirectionBits -------------------- */
 
     enum Direction {

@@ -25,14 +25,10 @@
  * b) changing between windowed and fullscreen mode,
  * c) fading between different screen using one of a number of
  *    predefined effects.
- *
- * The code in this file is independent of the game.  For game-specific
- * display code, refer to file display.cc
  */
 
 #include "enigma.hh"
 #include "video.hh"
-#include "texture.hh"
 #include "lua.hh"
 #include "options.hh"
 #include "main.hh"
@@ -51,6 +47,8 @@ using namespace ecl;
 using namespace video;
 using namespace enigma;
 
+/* -------------------- Local Variables -------------------- */
+
 namespace {
 
 std::string gCaption;
@@ -58,12 +56,6 @@ bool gInitialized = false;
 ecl::Screen *gScreen = NULL;
 SDL_Surface *gSdlScreen = NULL;
 
-}
-
-
-/* -------------------- Local Variables -------------------- */
-namespace
-{
     Surface     *back_buffer  = 0;
 
     /*! List of available video modes. */
@@ -333,7 +325,7 @@ int mouseEventFilter(const SDL_Event *e)
 void video::SetMouseCursor(ecl::Surface *s, int hotx, int hoty) {
     if (cursor.tex.id != 0)
         glDeleteTextures(1, &cursor.tex.id);
-    CreateTexture(s, &cursor.tex);
+    CreateTexture(s->get_surface(), &cursor.tex);
     delete s;
     cursor.hotx   = hotx;
     cursor.hoty   = hoty;

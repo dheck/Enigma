@@ -33,6 +33,46 @@
 using namespace std;
 using namespace ecl;
 
+Texture ecl::dummyTexture = {0, 0, 0, false};
+
+void ecl::CreateTexture(SDL_Surface *s, Texture *tex) {
+    GLuint texid;
+    glGenTextures(1, &texid);
+    glBindTexture(GL_TEXTURE_2D, texid);
+
+    GLenum err = glGetError();
+    if (err != 0)
+        fprintf(stderr, "Could not create texture.\n");
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, 
+            GL_BGRA, GL_UNSIGNED_BYTE, s->pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    tex->id = texid;
+    tex->width = s->w;
+    tex->height = s->h;
+    tex->alpha = (s->flags & SDL_SRCALPHA) != 0;
+}
+
+void ecl::blit(const Texture &tex, int x, int y) {
+    glEnable(GL_TEXTURE_2D);
+    if (tex.alpha) {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+    } else
+        glDisable(GL_BLEND);
+    glBindTexture(GL_TEXTURE_2D, tex.id);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0,0); glVertex3f(x, y, 0);
+    glTexCoord2f(1,0); glVertex3f(x + tex.width, y, 0);
+    glTexCoord2f(1,1); glVertex3f(x + tex.width, y + tex.height, 0);
+    glTexCoord2f(0,1); glVertex3f(x, y + tex.height, 0);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+}
+
 
 /* -------------------- Graphics primitives -------------------- */
 

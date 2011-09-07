@@ -639,8 +639,10 @@ namespace enigma { namespace gui {
     {
         const video::VMInfo *vminfo = video::GetInfo();
         video::SetWindowCaption(("Enigma - Options Menu"));
-    //     blit(gc, 0,0, enigma::GetImage("menu_bg"));
-        blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, background);
+
+        const Texture &bg = GetTexture("menu_bg", ".jpg");
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(bg, vminfo->mbg_offsetx, vminfo->mbg_offsety);
     }
     
 /* -------------------- Functions -------------------- */
