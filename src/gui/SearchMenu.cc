@@ -88,7 +88,10 @@ namespace enigma { namespace gui {
     }
     
     void SearchMenu::draw_background(ecl::GC &gc) {
+        const video::VMInfo &vminfo = *video::GetInfo();
+
         video::SetWindowCaption(("Enigma - Search Menu"));
-        blit(gc, 0,0, enigma::GetImage("menu_bg", ".jpg"));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(GetTexture("menu_bg", ".jpg"), vminfo.mbg_offsetx, vminfo.mbg_offsety);
     }
 }} // namespace enigma::gui

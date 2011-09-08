@@ -580,7 +580,9 @@ LevelInspector::LevelInspector(lev::Proxy *aLevel, bool showDeveloperInfo):
         const int vshrink = vminfo->width < 640 ? 1 : 0;
         video::SetWindowCaption((std::string("Enigma - Level ") + 
             (isDeveloperMode ? "Developer " : "") + "Inspector").c_str());
-        blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, enigma::GetImage("menu_bg", ".jpg"));
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(GetTexture("menu_bg", ".jpg"), vminfo->mbg_offsetx, vminfo->mbg_offsety);
         blit(gc, vminfo->width-vminfo->thumbw-10-hmargin, vmargin, previewImage);
         Surface *img_hard = enigma::GetImage("completed");
         if (withEasy) {

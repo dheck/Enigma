@@ -635,63 +635,56 @@ bool Button::isHighlight() {
 void Button::draw(ecl::GC &gc, const ecl::Rect &r) {
     const int borderw = 4;
 
-    ecl::Surface *s = enigma::GetImage(m_activep ? "buttonhl" : "button");
-
-    if (!s) 
-        return;
-    Rect srcrect (0,0,borderw, borderw);
+    const Texture &t = enigma::GetTexture(m_activep ? "buttonhl" : "button");
+    Rect srcrect(0, 0, borderw, borderw);
     Rect area = get_area();
 
     // background
     if (highlight)
-        set_color (gc, 70, 70, 70);
+        glColor3f(0.25, 0.25, 0.25);
     else
-        set_color (gc, 0,0,0);
-    box (gc, smaller(area, borderw));
+        glColor3i(0,0,0);
+    drawBox(smaller(area, borderw));
 
-    set_color (gc, 0,0,0);
     // corners
-    blit (gc, area.x, area.y, s, srcrect);
-    srcrect.x += s->width()-borderw;
-    blit (gc, area.x+area.w-borderw, area.y, s, srcrect);
+    blit(t, area.x, area.y, srcrect);
+    srcrect.x += t.width-borderw;
+    blit (t, area.x+area.w-borderw, area.y, srcrect);
     srcrect.x = 0;
-    srcrect.y += s->height()-borderw;
-    blit (gc, area.x, area.y+area.h-borderw, s, srcrect);
-    srcrect.x += s->width()-borderw;
-    blit (gc, area.x+area.w-borderw, area.y+area.h-borderw, s, srcrect);
+    srcrect.y += t.height-borderw;
+    blit (t, area.x, area.y+area.h-borderw, srcrect);
+    srcrect.x += t.width-borderw;
+    blit (t, area.x+area.w-borderw, area.y+area.h-borderw, srcrect);
 
     // horizontal borders
-    {
-        int tilew = s->width() - 2*borderw;
-        int ntiles = (area.w - 2*borderw) / tilew;
-        int x = area.x + borderw;
-        for (int i=0; i<ntiles; ++i) {
-            blit (gc, x, area.y, s, Rect (borderw, 0, tilew, borderw));
-            blit (gc, x, area.y+area.h-borderw, s,
-                    Rect (borderw, s->height()-borderw, tilew, borderw));
-            x += tilew;
-        }
-        int restw = (area.w - 2*borderw) - tilew*ntiles;
-        blit (gc, x, area.y, s, Rect (borderw, 0, restw, borderw));
-        blit (gc, x, area.y+area.h-borderw, s,
-                Rect (borderw, s->height()-borderw, restw, borderw));
+    int tilew = t.width - 2*borderw;
+    int ntiles = (area.w - 2*borderw) / tilew;
+    int x = area.x + borderw;
+    for (int i=0; i<ntiles; ++i) {
+        blit (t, x, area.y, Rect (borderw, 0, tilew, borderw));
+        blit (t, x, area.y+area.h-borderw,
+                Rect (borderw, t.height-borderw, tilew, borderw));
+        x += tilew;
     }
+    int restw = (area.w - 2*borderw) - tilew*ntiles;
+    blit (t, x, area.y, Rect (borderw, 0, restw, borderw));
+    blit (t, x, area.y+area.h-borderw, 
+            Rect (borderw, t.height-borderw, restw, borderw));
+
     // vertical borders
-    {
-        int tileh = s->height() - 2*borderw;
-        int ntiles = (area.h - 2*borderw) / tileh;
-        int y = area.y + borderw;
-        for (int i=0; i<ntiles; ++i) {
-            blit (gc, area.x, y, s, Rect (0, borderw, borderw, tileh));
-            blit (gc, area.x+area.w-borderw, y, s,
-                    Rect (s->width()-borderw, borderw, borderw, tileh));
-            y += tileh;
-        }
-        int resth = (area.h - 2*borderw) - tileh*ntiles;
-        blit (gc, area.x, y, s, Rect (0, borderw, borderw, resth));
-        blit (gc, area.x+area.w-borderw, y, s,
-                Rect (s->width()-borderw, borderw, borderw, resth));
+    int tileh = t.height - 2*borderw;
+    ntiles = (area.h - 2*borderw) / tileh;
+    int y = area.y + borderw;
+    for (int i=0; i<ntiles; ++i) {
+        blit (t, area.x, y, Rect (0, borderw, borderw, tileh));
+        blit (t, area.x+area.w-borderw, y, 
+                Rect (t.width-borderw, borderw, borderw, tileh));
+        y += tileh;
     }
+    int resth = (area.h - 2*borderw) - tileh*ntiles;
+    blit (t, area.x, y, Rect (0, borderw, borderw, resth));
+    blit (t, area.x+area.w-borderw, y, 
+            Rect (t.width-borderw, borderw, borderw, resth));
 }
 
 /* -------------------- PushButton -------------------- */

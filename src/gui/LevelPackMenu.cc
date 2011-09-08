@@ -475,7 +475,8 @@ namespace enigma { namespace gui {
     void LevelPackMenu::draw_background(ecl::GC &gc) {
         const video::VMInfo *vminfo = video::GetInfo();
         video::SetWindowCaption(("Enigma - Level Pack Menu"));
-        blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, enigma::GetImage("menu_bg", ".jpg"));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(GetTexture("menu_bg", ".jpg"), vminfo->mbg_offsetx, vminfo->mbg_offsety);
     }
     
     int LevelPackMenu::getGroupPosition(std::vector<std::string> * groups, std::string groupName) {

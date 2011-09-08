@@ -40,7 +40,8 @@ extern Texture dummyTexture;
 
 void CreateTexture(SDL_Surface *s, Texture *tex);
 void blit(const Texture &tex, int x, int y);
-
+void blit(const Texture &tex, int x, int y, const Rect &srcRect);
+void drawBox(const Rect &r);
 
 /* -------------------- Colors -------------------- */
 

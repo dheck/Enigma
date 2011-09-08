@@ -228,7 +228,8 @@ namespace enigma { namespace gui {
         const video::VMInfo *vminfo = video::GetInfo();
 
         video::SetWindowCaption(("Enigma - Level Pack Group Configuration"));
-        blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, enigma::GetImage("menu_bg", ".jpg"));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(GetTexture("menu_bg", ".jpg"), vminfo->mbg_offsetx, vminfo->mbg_offsety);
     }
     
 

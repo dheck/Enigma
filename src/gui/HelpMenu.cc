@@ -66,7 +66,8 @@ namespace enigma { namespace gui {
         const video::VMInfo &vminfo = *video::GetInfo();
         const int vshrink = vminfo.width < 640 ? 1 : 0;
 
-        blit(gc, 0,0, enigma::GetImage("menu_bg", ".jpg"));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(GetTexture("menu_bg", ".jpg"), vminfo.mbg_offsetx, vminfo.mbg_offsety);
         Font *f = enigma::GetFont(cfg.fontname.c_str());
     
         int x = (vminfo.width - (vshrink ? 320 : 640))/2;

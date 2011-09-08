@@ -427,7 +427,8 @@ namespace enigma { namespace gui {
         video::SetWindowCaption(("Enigma - Level Menu"));
         sound::StartMenuMusic();
     
-        blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, enigma::GetImage("menu_bg", ".jpg"));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(GetTexture("menu_bg", ".jpg"), vminfo->mbg_offsetx, vminfo->mbg_offsety);
     }
 
     void LevelMenu::next_unsolved() 

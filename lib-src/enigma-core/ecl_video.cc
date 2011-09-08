@@ -58,6 +58,7 @@ void ecl::CreateTexture(SDL_Surface *s, Texture *tex) {
 
 void ecl::blit(const Texture &tex, int x, int y) {
     glEnable(GL_TEXTURE_2D);
+    glColor4f(1, 1, 1, 1);
     if (tex.alpha) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
@@ -71,6 +72,36 @@ void ecl::blit(const Texture &tex, int x, int y) {
     glTexCoord2f(0,1); glVertex3f(x, y + tex.height, 0);
     glEnd();
     glDisable(GL_TEXTURE_2D);
+}
+
+void ecl::blit(const Texture &tex, int x, int y, const Rect &srcRect) {
+    glEnable(GL_TEXTURE_2D);
+    glColor4f(1, 1, 1, 1);
+    if (tex.alpha) {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+    } else
+        glDisable(GL_BLEND);
+    glBindTexture(GL_TEXTURE_2D, tex.id);
+    float xf = 1.f / tex.width, yf = 1.f / tex.height;
+    float x0 = srcRect.x * xf, x1 = (srcRect.x + srcRect.w) * xf;
+    float y0 = srcRect.y * yf, y1 = (srcRect.y + srcRect.h) * yf;
+    glBegin(GL_QUADS);
+    glTexCoord2f(x0, y0); glVertex3f(x, y, 0);
+    glTexCoord2f(x1,y0); glVertex3f(x + srcRect.w, y, 0);
+    glTexCoord2f(x1,y1); glVertex3f(x + srcRect.w, y + srcRect.h, 0);
+    glTexCoord2f(x0,y1); glVertex3f(x, y + srcRect.h, 0);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+}
+
+void ecl::drawBox(const Rect &r) {
+    glBegin(GL_QUADS);
+    glVertex3f(r.x, r.y, 0);
+    glVertex3f(r.x + r.w, r.y, 0);
+    glVertex3f(r.x + r.w, r.y + r.h, 0);
+    glVertex3f(r.x, r.y + r.h, 0);
+    glEnd();
 }
 
 
@@ -494,7 +525,8 @@ void ecl::TintRect(Surface *s, Rect rect, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 
         GC gc(s);
         set_color(gc, r,g,b);
-        box(gc, rect);
+// TODO: OPENGL
+//        box(gc, rect);
         blit(gc, rect.x, rect.y, copy.get());
     }
 }

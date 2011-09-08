@@ -102,7 +102,8 @@ namespace enigma { namespace gui {
             }
             delete image;
         } else {
-            blit(gc, vminfo->mbg_offsetx, vminfo->mbg_offsety, enigma::GetImage("menu_bg", ".jpg"));
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            blit(GetTexture("menu_bg", ".jpg"), vminfo->mbg_offsetx, vminfo->mbg_offsety);
             Font *f = enigma::GetFont("menufont");
             f->render (gc, 30, 60, _("No screenshot available:"));
             f->render (gc, 30, 100, filename.c_str());

@@ -361,7 +361,6 @@ namespace enigma { namespace gui {
         sound::StartMenuMusic();
 
         const Texture &bg = GetTexture("menu_bg", ".jpg");
-    
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         blit(bg, vminfo->mbg_offsetx, vminfo->mbg_offsety);
 

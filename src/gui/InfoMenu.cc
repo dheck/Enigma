@@ -42,7 +42,9 @@ namespace enigma { namespace gui {
     void InfoMenu::draw_background(ecl::GC &gc) {
         const video::VMInfo &vminfo = *video::GetInfo();
         const int vshrink = vminfo.width < 640 ? 1 : 0;
-        blit(gc, vminfo.mbg_offsetx, vminfo.mbg_offsety, enigma::GetImage("menu_bg", ".jpg"));
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        blit(GetTexture("menu_bg", ".jpg"), vminfo.mbg_offsetx, vminfo.mbg_offsety);
         
         Font *f = enigma::GetFont("menufont");
         int row = 0;
