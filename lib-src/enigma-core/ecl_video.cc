@@ -416,51 +416,18 @@ Surface::make_surface (SDL_Surface *sdls)
    the namespace explicitly and cannot simply use a using-declaration. */
 
 ecl::Screen::Screen (Surface *s)
-: m_surface(s), m_sdlsurface(s->get_surface()), update_all_p(false)
+: m_surface(s), m_sdlsurface(s->get_surface())
 {
 }
 
 ecl::Screen::Screen (SDL_Surface *s)
-: m_surface (Surface::make_surface(s)), m_sdlsurface(s), update_all_p(false)
+: m_surface (Surface::make_surface(s)), m_sdlsurface(s)
 {
-}
-
-void ecl::Screen::update_all()
-{
-    //SDL_UpdateRect(get_surface(), 0, 0, 0, 0);
-    update_all_p = true;
-}
-
-void ecl::Screen::update_rect(const Rect& r)
-{
-    if (m_dirtyrects.size() < 200)
-        m_dirtyrects.push_back(r);
-    else
-        update_all();
 }
 
 void ecl::Screen::set_caption(const char* str)
 {
     SDL_WM_SetCaption(str, 0);
-}
-
-void ecl::Screen::flush_updates()
-{
-    if (update_all_p) {
-        SDL_UpdateRect(m_sdlsurface, 0, 0, 0, 0);	// update everything
-        update_all_p=false;
-    }
-    else if (!m_dirtyrects.empty()) {
-        m_dirtyrects.intersect (size());
-
-        vector<SDL_Rect> rects(m_dirtyrects.size());
-
-        RectList::iterator j=m_dirtyrects.begin();;
-        for (unsigned i=0; i<rects.size(); ++i, ++j)
-            sdl::copy_rect (rects[i], *j);
-        SDL_UpdateRects (m_sdlsurface, rects.size(), &rects[0]);
-    }
-    m_dirtyrects.clear();
 }
 
 Rect ecl::Screen::size() const {
@@ -489,13 +456,6 @@ ecl::DisplayFormat(Surface* s)
     return 0;
 }
 
-
-ecl::Screen *
-ecl::OpenScreen(int w, int h, int bipp)
-{
-    SDL_Surface* sfc = SDL_SetVideoMode(w, h, bipp, SDL_SWSURFACE);
-    return new Screen(sfc);
-}
 
 Surface *
 ecl::Duplicate(const Surface *s)

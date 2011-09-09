@@ -36,7 +36,7 @@ namespace enigma { namespace gui {
         void tick(double dtime);
         bool on_event (const SDL_Event &e);
         void on_action(Widget *w);
-        void draw_background(ecl::GC &gc);
+        void draw_background();
     private:
         void update_info();
 

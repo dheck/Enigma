@@ -46,7 +46,7 @@ namespace enigma { namespace gui {
 
         // Menu interface.
         void tick (double time);
-        void draw_background(ecl::GC &gc);
+        void draw_background();
 
         // Widget interface.
         bool on_event (const SDL_Event &e);
@@ -81,7 +81,7 @@ namespace enigma { namespace gui {
         void on_action(Widget *);
     public:
         DifficultyButton();
-        virtual void draw(ecl::GC &gc, const ecl::Rect &r);
+        virtual void draw(const ecl::Rect &r);
     private:
         void update();
     };
@@ -91,7 +91,7 @@ namespace enigma { namespace gui {
         void on_action(Widget *);
     public:
         AdvanceModeButton();
-        virtual void draw(ecl::GC &gc, const ecl::Rect &r);
+        virtual void draw(const ecl::Rect &r);
     private:
         void update();
     };

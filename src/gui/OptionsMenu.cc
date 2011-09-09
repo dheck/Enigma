@@ -635,7 +635,7 @@ namespace enigma { namespace gui {
         }
     }
     
-    void OptionsMenu::draw_background(ecl::GC &gc)
+    void OptionsMenu::draw_background()
     {
         const video::VMInfo *vminfo = video::GetInfo();
         video::SetWindowCaption(("Enigma - Options Menu"));

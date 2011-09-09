@@ -41,7 +41,7 @@ namespace enigma { namespace gui {
         void add(Widget *w, ecl::Rect r);
         void center();
 
-        void draw (ecl::GC &gc, const ecl::Rect &r);
+        void draw(const ecl::Rect &r);
 
         virtual void quit();
         void abort();
@@ -55,7 +55,7 @@ namespace enigma { namespace gui {
         void reset_key_focus_widget() { key_focus_widget = NULL; }
         
         // Menu interface.
-        virtual void draw_background(ecl::GC &/*gc*/) {}
+        virtual void draw_background() {}
 
     private:
         void handle_event(const SDL_Event &e);

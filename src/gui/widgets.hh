@@ -57,7 +57,7 @@ namespace enigma { namespace gui {
     public:
 
         /* ---------- Widget interface ---------- */
-        virtual void draw (ecl::GC &gc, const ecl::Rect &r) = 0;
+        virtual void draw(const ecl::Rect &r) = 0;
         virtual void activate() {}
         virtual void deactivate() {}
         
@@ -120,7 +120,7 @@ namespace enigma { namespace gui {
         EmptyWidget () : Widget ()
         {}
 
-        virtual void draw (ecl::GC &gc, const ecl::Rect &r) 
+        virtual void draw (const ecl::Rect &r) 
         {}
 
         virtual void naturalsize (int &w, int &h) const {
@@ -177,8 +177,8 @@ namespace enigma { namespace gui {
         virtual bool is_key_focus(Widget *focus);
 
         // Widget interface.
-        void draw (ecl::GC& gc, const ecl::Rect &r);
-        void move (int x, int y);
+        void draw(const ecl::Rect &r);
+        void move(int x, int y);
 
         // AreaManaged interface.
         void invalidate_area(const ecl::Rect &r);
@@ -281,7 +281,7 @@ namespace enigma { namespace gui {
     class Image : public Widget {
     public:
         Image (const std::string &iname) : imgname(iname) {}
-        void draw (ecl::GC &gc, const ecl::Rect &r);
+        void draw(const ecl::Rect &r);
     private:
         std::string imgname;
     };
@@ -295,7 +295,7 @@ namespace enigma { namespace gui {
                VAlignment valign=VALIGN_CENTER);
 
         // Widget interface
-        virtual void draw (ecl::GC &gc, const ecl::Rect &r);
+        virtual void draw(const ecl::Rect &r);
         virtual void naturalsize (int &w, int &h) const;
 
         // Methods
@@ -335,7 +335,7 @@ namespace enigma { namespace gui {
         Button();
         
         // Widget interface.
-        void draw(ecl::GC &gc, const ecl::Rect &r);
+        void draw(const ecl::Rect &r);
         void activate();
         void deactivate();
         bool m_activep;
@@ -372,7 +372,7 @@ namespace enigma { namespace gui {
 
     private:
         // Widget interface.
-        void draw(ecl::GC &gc, const ecl::Rect &r);
+        void draw(const ecl::Rect &r);
 
         // Variables.
         ecl::Font *menufont;
@@ -460,7 +460,7 @@ namespace enigma { namespace gui {
                     ActionListener    *al = 0);
         void set_images(const std::string &unselected, const std::string &selected);
         // Widget interface.
-        virtual void draw(ecl::GC &gc, const ecl::Rect &r);
+        virtual void draw(const ecl::Rect &r);
     private:
         std::string fname_sel, fname_unsel;
     };
@@ -480,7 +480,7 @@ namespace enigma { namespace gui {
         void setState(bool isSelected);
         bool getState() const;
         // Widget interface.
-        virtual void draw(ecl::GC &gc, const ecl::Rect &r);
+        virtual void draw(const ecl::Rect &r);
     private:
         std::string fname_sel, fname_unsel, fname_mouse;
         bool state;

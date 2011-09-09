@@ -379,14 +379,14 @@ namespace enigma { namespace gui {
         
     }
     
-    void LevelPackComposer::draw_background(ecl::GC &gc) {
+    void LevelPackComposer::draw_background() {
         const video::VMInfo *vminfo = video::GetInfo();
         
         video::SetWindowCaption(("Enigma - Level Pack Composer"));
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         blit(GetTexture("menu_bg", ".jpg"), vminfo->mbg_offsetx, vminfo->mbg_offsety);
         if (isModified)
-          blit(gc, 0,0, enigma::GetImage(("ic-obsolete" + vminfo->thumbsext).c_str()));
+            blit(enigma::GetTexture(("ic-obsolete" + vminfo->thumbsext).c_str()), 0, 0);
     }
     
 

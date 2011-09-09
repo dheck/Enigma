@@ -19,6 +19,7 @@
 #ifndef GUI_LEVELWIDGET_HH_INCLUDED
 #define GUI_LEVELWIDGET_HH_INCLUDED
 
+#include "ecl_video.hh"
 #include "gui/widgets.hh"
 #include "gui/LevelPreviewCache.hh"
 #include "lev/Index.hh"
@@ -38,7 +39,7 @@ namespace enigma { namespace gui {
         LevelWidget(bool withScoreIcons = true, bool withEditBorder = false);
 
         //---------- Widget interface ----------//
-        void draw(ecl::GC &gc, const ecl::Rect &r);
+        void draw(const ecl::Rect &r);
         void tick (double time);
 
         void set_listener(ActionListener *al) {
@@ -66,7 +67,7 @@ namespace enigma { namespace gui {
         void scroll_down(int lines);
         void set_selected (int newfirst, int newsel);
         int thumb_off(int small, int medium, int large);
-        bool draw_level_preview (ecl::GC &gc, int x, int y, int borderWidth,
+        bool draw_level_preview (int x, int y, int borderWidth,
                lev::Proxy *proxy, bool selected, bool isCross, bool locked,
                bool allowGeneration, bool &didGenerate);
 
@@ -94,20 +95,20 @@ namespace enigma { namespace gui {
         double lastUpdate;
 
         // some image pointers for efficiency
-        ecl::Surface *img_link;
-        ecl::Surface *img_copy;
-        ecl::Surface *img_feather;
-        ecl::Surface *img_easy;
-        ecl::Surface *img_hard;
-        ecl::Surface *img_obsolete;
-        ecl::Surface *img_outdated;
-        ecl::Surface *img_unavailable;
+        ecl::Texture img_link;
+        ecl::Texture img_copy;
+        ecl::Texture img_feather;
+        ecl::Texture img_easy;
+        ecl::Texture img_hard;
+        ecl::Texture img_obsolete;
+        ecl::Texture img_outdated;
+        ecl::Texture img_unavailable;
     //    Surface *img_unknown;
-        ecl::Surface *img_par;
-        ecl::Surface *img_wrEasy;
-        ecl::Surface *img_wrDifficult;
-        ecl::Surface *img_border;
-        ecl::Surface *img_editborder;
+        ecl::Texture img_par;
+        ecl::Texture img_wrEasy;
+        ecl::Texture img_wrDifficult;
+        ecl::Texture img_border;
+        ecl::Texture img_editborder;
     };
 
 }} // namespace enigma::gui

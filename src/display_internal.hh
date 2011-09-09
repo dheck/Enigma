@@ -39,7 +39,7 @@ namespace display
         bool has_changed() const { return changedp; }
         bool has_finished() const { return finishedp; }
 
-        void draw(ecl::GC &gc, const ecl::Rect &r);
+        void draw(const ecl::Rect &r);
     private:
         ecl::Rect                area;
         std::string             text;
@@ -59,7 +59,7 @@ namespace display
         ~StatusBarImpl();
 
         bool has_changed() const { return m_changedp; }
-        void redraw (ecl::GC &gc, const ScreenArea &r);
+        void redraw (const ScreenArea &r);
         void tick (double dtime);
         void new_world();
 

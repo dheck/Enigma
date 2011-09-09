@@ -36,7 +36,7 @@ namespace enigma { namespace gui {
         void on_action(gui::Widget *w);
 
         // Menu interface.
-        void draw_background(ecl::GC &gc);
+        void draw_background();
         void tick(double dtime);
         
         //

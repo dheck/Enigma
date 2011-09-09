@@ -158,18 +158,20 @@ void StatusBarImpl::setBasicModes(std::string flags) {
     m_changedp = true;
 }
 
-void StatusBarImpl::redraw (ecl::GC &gc, const ScreenArea &r) {
+void StatusBarImpl::redraw (const ScreenArea &r) {
     const video::VMInfo *vminfo = video::GetInfo();
     ScreenArea a = get_area();
-    clip(gc, intersect(a, r));
+// OPENGL    clip(gc, intersect(a, r));
 
-    blit(gc, a.x, a.y, enigma::GetImage(player == enigma::YIN ? "inventory_yin" : "inventory_yang", ".png"));
+    blit(enigma::GetTexture(player == enigma::YIN ? "inventory_yin" : "inventory_yang", ".png"), 
+            a.x, a.y);
     
     // draw player indicator
     int ts = vminfo->tile_size;
     int xoff = 35*ts/8;
     int yoff =  4*ts/8 + vminfo->sb_coffsety;
-    blit(gc, a.x + xoff, a.y + yoff, enigma::GetImage("player_switch_anim", ".png"), Rect (0, playerImage * ts, ts, ts));
+    blit(enigma::GetTexture("player_switch_anim", ".png"), 
+            a.x + xoff, a.y + yoff, Rect (0, playerImage * ts, ts, ts));
 
 
 //     set_color (gc, 255, 0, 0);
@@ -200,7 +202,7 @@ void StatusBarImpl::redraw (ecl::GC &gc, const ScreenArea &r) {
     xsize_modes = s_modes->width();
     x = modesarea.x + modesarea.w - xsize_modes;
     y = modesarea.y;
-    blit(gc, x, y, s_modes);
+    // OPENGL blit(x, y, s_modes);
     delete s_modes;
     
     if (m_showtime_p || m_showcounter_p) {
@@ -260,7 +262,7 @@ void StatusBarImpl::redraw (ecl::GC &gc, const ScreenArea &r) {
             if (m_showcounter_p) { // time + moves
                 x = movesarea.x + (movesarea.w - xsize_moves)/2;
                 y = movesarea.y + (movesarea.h + timefont->get_lineskip())/2 - movesfont->get_lineskip() - 4;
-                blit(gc, x, y, s_moves);
+                // OPENGL blit(gc, x, y, s_moves);
 
                 x = timearea.x + (movesarea.x - timearea.x - xsize_time)/2;
                 y = timearea.y + (timearea.h - timefont->get_lineskip())/2;
@@ -273,40 +275,40 @@ void StatusBarImpl::redraw (ecl::GC &gc, const ScreenArea &r) {
             if (showHours) {
                 text = ecl::strf("%d:", hours);
                 s_time = timefont->render(text.c_str());
-                blit(gc, x + maxWidthDigit - widthDigit[hours], y, s_time);
+                // OPENGL blit(gc, x + maxWidthDigit - widthDigit[hours], y, s_time);
                 delete s_time;
                 x += maxWidthDigit + widthColon;
             }
             if (showMinutes) {
-				text = ecl::strf("%02d", minutes);
-				s_time = timefont->render(text.c_str());
-                blit(gc, x + maxWidthDigit - widthDigit[minutes/10], y, s_time);
+                text = ecl::strf("%02d", minutes);
+                s_time = timefont->render(text.c_str());
+                // OPENGL blit(gc, x + maxWidthDigit - widthDigit[minutes/10], y, s_time);
                 x += 2 * maxWidthDigit;
             } else {
-				text = ecl::strf("%d", minutes);
-				s_time = timefont->render(text.c_str());
-                blit(gc, x + maxWidthDigit - widthDigit[minutes%10], y, s_time);
+                text = ecl::strf("%d", minutes);
+                s_time = timefont->render(text.c_str());
+                // OPENGL blit(gc, x + maxWidthDigit - widthDigit[minutes%10], y, s_time);
                 x += maxWidthDigit;
             }
             delete s_time;
             s_time = timefont->render("'");
-            blit(gc, x, y, s_time);
+            // OPENGL blit(gc, x, y, s_time);
             x += widthApos;
             if (showSeconds) {
                 delete s_time;
                 text = ecl::strf("%02d", seconds);
                 s_time = timefont->render(text.c_str());
-                blit(gc, x + maxWidthDigit - widthDigit[seconds/10], y, s_time);
+                // OPENGL blit(gc, x + maxWidthDigit - widthDigit[seconds/10], y, s_time);
                 delete s_time;
                 x += 2 * maxWidthDigit;
                 s_time = timefont->render("\"");
-                blit(gc, x, y, s_time);
+                // OPENGL blit(gc, x, y, s_time);
             }
         }
         else {                  // only moves            
             int x = timearea.x + (timearea.w - xsize_moves)/2;
             int y = timearea.y + (timearea.h - movesfont->get_lineskip())/2;
-            blit(gc, x, y, s_moves);
+            // OPENGL blit(gc, x, y, s_moves);
         }
 
         delete s_moves;
@@ -314,14 +316,14 @@ void StatusBarImpl::redraw (ecl::GC &gc, const ScreenArea &r) {
     }
 
     if (m_text_active) {
-        m_textview.draw (gc, r);
+        m_textview.draw(r);
     } else {
         client::Msg_FinishedText();
         int itemsize = static_cast<int>(vminfo->tile_size * 1.125);
         int x = m_itemarea.x;
         for (unsigned i=0; i<m_models.size(); ++i) {
             Model *m = m_models[i];
-            m->draw(gc, x, m_itemarea.y);
+            m->draw(x, m_itemarea.y);
             x += itemsize;
         }
     }
@@ -484,12 +486,12 @@ void TextDisplay::tick (double dtime)
     }
 }
 
-void TextDisplay::draw (ecl::GC &gc, const ScreenArea &r) {
-    clip(gc, intersect(area, r));
-    set_color(gc, 0,0,0);
-    box(gc, area);
-    if (Surface *s = textsurface.get())
-        blit(gc, area.x-round_nearest<int>(xoff), area.y, s);
+void TextDisplay::draw (const ScreenArea &r) {
+// OPENGL    clip(gc, intersect(area, r));
+    // glColor3i(0,0,0);
+    // drawBox(area);
+    // if (Surface *s = textsurface.get())
+    //     blit(gc, area.x-round_nearest<int>(xoff), area.y, s);
 }
 
 
@@ -548,32 +550,32 @@ void DisplayEngine::update_offset ()
     int newx, newy;
     world_to_video (m_new_offset, &newx, &newy);
 
-    if (newx != oldx || newy != oldy) {
-        const Rect &a = get_area();
-        Rect oldarea (a.x+oldx, a.y+oldy, a.w, a.h);
-        Rect newarea (a.x+newx, a.y+newy, a.w, a.h);
-        Rect common = intersect(newarea, oldarea);
+    // if (newx != oldx || newy != oldy) {
+    //     const Rect &a = get_area();
+    //     Rect oldarea (a.x+oldx, a.y+oldy, a.w, a.h);
+    //     Rect newarea (a.x+newx, a.y+newy, a.w, a.h);
+    //     Rect common = intersect(newarea, oldarea);
 
-        // Blit overlapping screen area from old to new position
-        GC screengc (screen->get_surface());
-        Rect blitrect (common.x-oldx, common.y-oldy, common.w, common.h);
-        blit (screengc, common.x-newx, common.y-newy, screen->get_surface(), blitrect);
-        blitrect.x = common.x-newx;
-        blitrect.y = common.y-newy;
-        screen->update_rect(blitrect);
+    //     // Blit overlapping screen area from old to new position
+    //     GC screengc (screen->get_surface());
+    //     Rect blitrect (common.x-oldx, common.y-oldy, common.w, common.h);
+    //     blit (screengc, common.x-newx, common.y-newy, screen->get_surface(), blitrect);
+    //     blitrect.x = common.x-newx;
+    //     blitrect.y = common.y-newy;
+    //     screen->update_rect(blitrect);
 
-        // Update offset
-        set_offset (V2(newx/double(m_tilew), newy/double(m_tileh)));
+    //     // Update offset
+    //     set_offset (V2(newx/double(m_tilew), newy/double(m_tileh)));
 
-        // Mark areas that could not be copied from old screen for redraw
-        RectList rl;
-        rl.push_back (get_area());
-        rl.sub (blitrect);
-        for (RectList::iterator i=rl.begin(); i!=rl.end(); ++i) {
-            Rect r = screen_to_world(*i);
-            mark_redraw_area (r);
-        }
-    }
+    //     // Mark areas that could not be copied from old screen for redraw
+    //     RectList rl;
+    //     rl.push_back (get_area());
+    //     rl.sub (blitrect);
+    //     for (RectList::iterator i=rl.begin(); i!=rl.end(); ++i) {
+    //         Rect r = screen_to_world(*i);
+    //         mark_redraw_area (r);
+    //     }
+    // }
 }
 
 void DisplayEngine::set_screen_area (const ecl::Rect & r) {
@@ -670,7 +672,7 @@ void DisplayEngine::mark_redraw_screen() {
     mark_redraw_area(screen_to_world(m_area));
 }
 
-void DisplayEngine::draw_all (ecl::GC &gc) 
+void DisplayEngine::draw_all() 
 {
     WorldArea wa = screen_to_world (get_area());
 
@@ -679,31 +681,32 @@ void DisplayEngine::draw_all (ecl::GC &gc)
         RectList rl;
         rl.push_back (get_area());
         rl.sub (world_to_screen (WorldArea (0,0, m_width, m_height)));
-        set_color (gc, 200, 0, 200);
+        glColor3i(200, 0, 200);
         for (RectList::iterator i=rl.begin(); i!=rl.end(); ++i)
-            box (gc, *i);
+            drawBox(*i);
     }
 
 
     int xpos, ypos;
     world_to_screen (V2(wa.x, wa.y), &xpos, &ypos);
     for (unsigned i=0; i<m_layers.size(); ++i) {
-        clip(gc, get_area());
+// OPENGL        clip(gc, get_area());
         m_layers[i]->prepare_draw (wa);
-        m_layers[i]->draw (gc, wa, xpos, ypos);
-        m_layers[i]->draw_onepass(gc);
+        m_layers[i]->draw(wa, xpos, ypos);
+        m_layers[i]->draw_onepass();
     }
 }
 
 void DisplayEngine::update_layer (DisplayLayer *l, WorldArea wa) 
 {
-    GC gc(video::GetScreen()->get_surface());
-
     int x2 = wa.x+wa.w;
     int y2 = wa.y+wa.h;
     int y2m1 = y2 - 1;
 
-    clip(gc, get_area());
+    Rect a = get_area();
+    // glEnable(GL_SCISSOR_TEST);
+    // glScissor(a.x, a.y, a.w, a.h);
+
     int xpos, ypos0;
     world_to_screen (V2(wa.x, wa.y), &xpos, &ypos0);
 
@@ -713,41 +716,38 @@ void DisplayEngine::update_layer (DisplayLayer *l, WorldArea wa)
         for (int y=wa.y; y<y2; y++, ypos += m_tileh) {
             if (m_redrawp(x,y) == 1)
                 if (y<y2m1 && m_redrawp(x,y+1) == 1) {
-                    l->draw (gc, WorldArea(x,y,1,2), xpos, ypos);
+                    l->draw (WorldArea(x,y,1,2), xpos, ypos);
                     y++;
                     ypos += m_tileh;
                 } else
-                    l->draw (gc, WorldArea(x,y,1,1), xpos, ypos);
+                    l->draw(WorldArea(x,y,1,1), xpos, ypos);
         }
     }
-    l->draw_onepass (gc);
+    l->draw_onepass();
 }
 
 void DisplayEngine::update_screen() 
 {
-    ecl::Screen *screen = video::GetScreen();
-    GC gc(screen->get_surface());
-
     if (m_new_offset != m_offset) {
         update_offset ();
         m_new_offset = m_offset;
     }
 
     Rect area=get_area();
-    clip(gc, area);
+// OPENGL    clip(gc, area);
 
     WorldArea wa = screen_to_world (area);
     for (unsigned i=0; i<m_layers.size(); ++i) {
         update_layer (m_layers[i], wa);
     }
-    int x2 = wa.x+wa.w;
-    int y2 = wa.y+wa.h;
-    for (int x=wa.x; x<x2; x++)
-        for (int y=wa.y; y<y2; y++)
-            if (m_redrawp(x,y) >= 1) {
-                if ((m_redrawp(x,y) -= 1) == 0)
-                    screen->update_rect (world_to_screen (WorldArea (x, y, 1, 1)));
-            } 
+    // int x2 = wa.x+wa.w;
+    // int y2 = wa.y+wa.h;
+    // for (int x=wa.x; x<x2; x++)
+    //     for (int y=wa.y; y<y2; y++)
+    //         if (m_redrawp(x,y) >= 1) {
+    //             if ((m_redrawp(x,y) -= 1) == 0)
+    //                 screen->update_rect (world_to_screen (WorldArea (x, y, 1, 1)));
+    //         } 
 }
 
 
@@ -871,7 +871,7 @@ Model *DL_Grid::yield_model (int x, int y) {
 }
 
 
-void DL_Grid::draw (ecl::GC &gc, const WorldArea &a, int destx, int desty) {
+void DL_Grid::draw(const WorldArea &a, int destx, int desty) {
     int x2 = a.x+a.w;
     int y2 = a.y+a.h;
     int tilew = get_engine()->get_tilew();
@@ -881,7 +881,7 @@ void DL_Grid::draw (ecl::GC &gc, const WorldArea &a, int destx, int desty) {
         int ypos = desty;
         for (int y=a.y; y<y2; ++y) {
             if (Model *m = m_models(x,y))
-                m->draw(gc, xpos, ypos);
+                m->draw(xpos, ypos);
             ypos += tileh;
         }
         xpos += tilew;
@@ -1047,15 +1047,15 @@ void DL_Sprites::kill_sprite (SpriteId id) {
     }
 }
 
-void DL_Sprites::draw (ecl::GC &gc, const WorldArea &a, int /*x*/, int /*y*/)
+void DL_Sprites::draw(const WorldArea &a, int /*x*/, int /*y*/)
 {
     DisplayEngine *engine = get_engine();
-    clip (gc, intersect (engine->get_area(), engine->world_to_screen(a)));
-    draw_sprites (false, gc, a);
+// OPENGL    clip (gc, intersect (engine->get_area(), engine->world_to_screen(a)));
+    draw_sprites (false, a);
 }
 
 
-void DL_Sprites::draw_sprites (bool drawshadowp, GC &gc, const WorldArea &a) {
+void DL_Sprites::draw_sprites(bool drawshadowp, const WorldArea &a) {
     SpriteList &sl = sprites;
 
 //    for (unsigned i=0, sl_size=sl.size() ; i<sl_size; ++i) {
@@ -1069,15 +1069,15 @@ void DL_Sprites::draw_sprites (bool drawshadowp, GC &gc, const WorldArea &a) {
                 int sx, sy;
                 get_engine()->world_to_screen(s->pos, &sx, &sy);
                 if (drawshadowp)
-                    s->model->draw_shadow(gc, sx, sy);
+                    s->model->draw_shadow(sx, sy);
                 else
-                    s->model->draw(gc, sx, sy);
+                    s->model->draw(sx, sy);
             }
         }
     }
 }
 
-void DL_Sprites::draw_onepass (ecl::GC &gc)
+void DL_Sprites::draw_onepass()
 {
 //     draw_sprites (false, gc);
 }
@@ -1151,12 +1151,12 @@ void DL_Sprites::tick (double dtime)
 // RUBBER BANDS
 //----------------------------------------------------------------------
 
-void DL_Lines::draw_onepass (ecl::GC &gc)
+void DL_Lines::draw_onepass()
 {
     DisplayEngine *engine = get_engine();
 
-//    set_color (gc, 240, 140, 20, 255);
-    set_flags (gc.flags, GS_ANTIALIAS);
+// OPENGL    set_color (gc, 240, 140, 20, 255);
+//    set_flags (gc.flags, GS_ANTIALIAS);
 
     for (LineMap::iterator i=m_rubbers.begin(); i!= m_rubbers.end(); ++i)
     {
@@ -1164,13 +1164,13 @@ void DL_Lines::draw_onepass (ecl::GC &gc)
         engine->world_to_screen (i->second.start, &x1, &y1);
         engine->world_to_screen (i->second.end, &x2, &y2);
 
-        set_color(gc, i->second.r, i->second.g, i->second.b, 255);
-        line (gc, x1, y1, x2, y2);
-        if (i->second.thick) {
-            line (gc, x1-1, y1, x2-1, y2);
-            line (gc, x1, y1-1, x2, y2-1);
-            line (gc, x1-1, y1-1, x2-1, y2-1);
-        }
+        // OPENGL set_color(gc, i->second.r, i->second.g, i->second.b, 255);
+        // line (gc, x1, y1, x2, y2);
+        // if (i->second.thick) {
+        //     line (gc, x1-1, y1, x2-1, y2);
+        //     line (gc, x1, y1-1, x2, y2-1);
+        //     line (gc, x1-1, y1-1, x2-1, y2-1);
+        // }
     }
 }
 
@@ -1433,19 +1433,20 @@ void StoneShadowCache::fill_image (StoneShadow *sh) {
         return;
     }
 
+#if 0 // OPENGL
     Surface *s = new_surface();
     GC gc(s);
     set_color (gc, 255,255,255);
     box(gc, s->size());
 
     if (Image *i = sh->images[0])
-        draw_image (i, gc, -m_tilew, -m_tileh);
+        i->draw(-m_tilew, -m_tileh);
     if (Image *i = sh->images[1])
-        draw_image (i, gc, 0, -m_tileh);
+        i->draw(0, -m_tileh);
     if (Image *i = sh->images[2])
-        draw_image (i, gc, -m_tilew, 0);
+        i->draw(-m_tilew, 0);
     if (Image *i = sh->images[3])
-        draw_image (i, gc, 0, 0);
+        i->draw(0, 0);
 
     SDL_Surface *ss = s->get_surface();
     SDL_SetColorKey(ss, SDL_SRCCOLORKEY | SDL_RLEACCEL,
@@ -1453,6 +1454,7 @@ void StoneShadowCache::fill_image (StoneShadow *sh) {
     SDL_SetAlpha (ss, SDL_SRCALPHA | SDL_RLEACCEL, 128);
 
     sh->image = s;
+#endif
 }
 
 void StoneShadowCache::fill_image (StoneShadow *sh, Model *models[4]) {
@@ -1460,10 +1462,10 @@ void StoneShadowCache::fill_image (StoneShadow *sh, Model *models[4]) {
     GC gc(s);
     set_color (gc, 255,255,255);
     box(gc, s->size());
-    if (models[0]) models[0]->draw_shadow (gc, -m_tilew, -m_tileh);
-    if (models[1]) models[1]->draw_shadow (gc, 0, -m_tileh);
-    if (models[2]) models[2]->draw_shadow (gc, -m_tilew, 0);
-    if (models[3]) models[3]->draw_shadow (gc, 0,0);
+    if (models[0]) models[0]->draw_shadow(-m_tilew, -m_tileh);
+    if (models[1]) models[1]->draw_shadow(0, -m_tileh);
+    if (models[2]) models[2]->draw_shadow(-m_tilew, 0);
+    if (models[3]) models[3]->draw_shadow(0,0);
     SDL_Surface *ss = s->get_surface();
     SDL_SetColorKey(ss, SDL_SRCCOLORKEY | SDL_RLEACCEL,
                     SDL_MapRGB(ss->format, 255,255,255));
@@ -1577,7 +1579,7 @@ void DL_Shadows::new_world(int w, int h)
     buffer = Surface::make_surface(ss);
 }
 
-void DL_Shadows::draw (ecl::GC &gc, const WorldArea &a, int destx, int desty) {
+void DL_Shadows::draw (const WorldArea &a, int destx, int desty) {
     int x2 = a.x+a.w;
     int y2 = a.y+a.h;
     int tilew = get_engine()->get_tilew();
@@ -1586,7 +1588,7 @@ void DL_Shadows::draw (ecl::GC &gc, const WorldArea &a, int destx, int desty) {
     for (int x=a.x; x<x2; ++x) {
         int ypos = desty;
         for (int y=a.y; y<y2; ++y) {
-            draw (gc, xpos, ypos, x, y);
+            draw (xpos, ypos, x, y);
             ypos += tileh;
         }
         xpos += tilew;
@@ -1633,7 +1635,9 @@ Model *DL_Shadows::get_shadow_model(int x, int y) {
     return 0;
 }
 
-void DL_Shadows::draw(GC &gc, int xpos, int ypos, int x, int y) {
+void DL_Shadows::draw(int xpos, int ypos, int x, int y) {
+
+#if 0  // OPENGL
     Model *models[4];
     models[0] = get_shadow_model (x-1, y-1);
     models[1] = get_shadow_model (x, y-1);
@@ -1678,14 +1682,15 @@ void DL_Shadows::draw(GC &gc, int xpos, int ypos, int x, int y) {
                     }
 //                }
             }
-            blit(gc, xpos, ypos, buffer);
+// OPENGL            blit(gc, xpos, ypos, buffer);
         }
         else {
-            blit (gc, xpos,ypos,s);
+// OPENGL            blit (gc, xpos,ypos,s);
         }
     }
 
     m_cache->release (sh);
+#endif
 }
 
 
@@ -2137,12 +2142,10 @@ void GameDisplay::set_scroll_boundary (double boundary)
 void GameDisplay::redraw_all (Screen *scr) {
     get_engine()->mark_redraw_screen();
     redraw_everything = true;
-    scr->update_all();
     redraw (scr);
 }
 
 void GameDisplay::redraw (ecl::Screen *screen) {
-    GC gc(screen->get_surface());
     if (SDL_GetTicks() - last_frame_time > 10) {
         CommonDisplay::redraw();
 
@@ -2151,42 +2154,42 @@ void GameDisplay::redraw (ecl::Screen *screen) {
             sprintf (fps,"fps: %d\n", int(1000.0/(SDL_GetTicks()-last_frame_time)));
             Font *f = enigma::GetFont("levelmenu");
 
+#if 0 // OPENGL
             clip(gc);
             Rect area (0,0,80,20);
             set_color (gc, 0,0,0);
             box (gc, area);
             f->render (gc, 0,0, fps);
-
-            screen->update_rect(area);
+#endif
         }
         last_frame_time = SDL_GetTicks();
     }
     if (status_bar->has_changed() || redraw_everything) {
-        status_bar->redraw (gc, inventoryarea);
-        screen->update_rect(inventoryarea);
+        status_bar->redraw(inventoryarea);
     }
     if (redraw_everything)
-        draw_borders(gc);
-    screen->flush_updates();
+        draw_borders();
+    SDL_GL_SwapBuffers();
     redraw_everything = false;
 }
 
-void GameDisplay::draw_all (GC &gc) {
-    get_engine()->draw_all(gc);
-    status_bar->redraw (gc, inventoryarea);
-    draw_borders(gc);
+void GameDisplay::draw_all () {
+    get_engine()->draw_all();
+    status_bar->redraw (inventoryarea);
+    draw_borders();
 }
 
-void GameDisplay::draw_borders (GC &gc) {
+void GameDisplay::draw_borders () {
     RectList rl;
-    rl.push_back (gc.drawable->size());
+    rl.push_back(Rect(0, 0, video::GetInfo()->width, video::GetInfo()->height));
     rl.sub (get_engine()->get_area());
     rl.sub (inventoryarea);
-    clip(gc);
-    set_color (gc, 0, 0, 0);
-    for (RectList::iterator i=rl.begin(); i!=rl.end(); ++i) {
-        box (gc, *i);
-    }
+// OPENGL
+    // clip(gc);
+    // set_color (gc, 0, 0, 0);
+    // for (RectList::iterator i=rl.begin(); i!=rl.end(); ++i) {
+    //     box (gc, *i);
+    // }
 }
 
 void GameDisplay::resize_game_area (int w, int h) 
@@ -2301,8 +2304,8 @@ void display::ToggleFlag(DisplayFlags flag)
     toggle_flags (display_flags, flag);
 }
 
-void display::DrawAll (GC &gc) {
-    gamedpy->draw_all(gc);
+void display::DrawAll () {
+    gamedpy->draw_all();
 }
 
 void display::RedrawAll(Screen *screen) {

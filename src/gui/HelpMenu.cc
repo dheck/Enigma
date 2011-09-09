@@ -61,7 +61,7 @@ namespace enigma { namespace gui {
             Menu::quit();
     }
     
-    void HelpMenu::draw_background (ecl::GC &gc) 
+    void HelpMenu::draw_background() 
     {
         const video::VMInfo &vminfo = *video::GetInfo();
         const int vshrink = vminfo.width < 640 ? 1 : 0;
@@ -78,8 +78,8 @@ namespace enigma { namespace gui {
             // If assert stops here, and you've worked on the game
             // help menu, check Client::show_help(): Here one of
             // the text lines is redefined. Correct the line number.
-            f->render (gc, cfg.x0/(vshrink?2:1) + x, y, _(helptext[i]));    // translate
-            f->render (gc, cfg.x1/(vshrink?2:1) + x, y, _(helptext[i+1]));  // translate
+            f->render (cfg.x0/(vshrink?2:1) + x, y, _(helptext[i]));    // translate
+            f->render (cfg.x1/(vshrink?2:1) + x, y, _(helptext[i+1]));  // translate
             y += cfg.yskip/(vshrink?2:1);
         }
     }

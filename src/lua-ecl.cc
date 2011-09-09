@@ -1,6 +1,6 @@
 /*
 ** Lua binding: px
-** Generated automatically by tolua++-1.0.93 on Wed Sep  9 01:10:11 2009.
+** Generated automatically by tolua++-1.0.93 on Fri Sep  9 11:20:54 2011.
 */
 
 #ifndef __cplusplus
@@ -1174,133 +1174,6 @@ static int tolua_px_ecl_Surface_height00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
-/* method: get_surface of class  Screen */
-#ifndef TOLUA_DISABLE_tolua_px_ecl_Screen_get_surface00
-static int tolua_px_ecl_Screen_get_surface00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
-     !tolua_isusertype(tolua_S,1,"Screen",0,&tolua_err) ||
-     !tolua_isnoobj(tolua_S,2,&tolua_err)
- )
-  goto tolua_lerror;
- else
-#endif
- {
-  Screen* self = (Screen*)  tolua_tousertype(tolua_S,1,0);
-#ifndef TOLUA_RELEASE
-  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'get_surface'",NULL);
-#endif
-  {
-   Surface* tolua_ret = (Surface*)  self->get_surface();
-   tolua_pushusertype(tolua_S,(void*)tolua_ret,"Surface");
-  }
- }
- return 1;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'get_surface'.",&tolua_err);
- return 0;
-#endif
-}
-#endif //#ifndef TOLUA_DISABLE
-
-/* method: update_all of class  Screen */
-#ifndef TOLUA_DISABLE_tolua_px_ecl_Screen_update_all00
-static int tolua_px_ecl_Screen_update_all00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
-     !tolua_isusertype(tolua_S,1,"Screen",0,&tolua_err) ||
-     !tolua_isnoobj(tolua_S,2,&tolua_err)
- )
-  goto tolua_lerror;
- else
-#endif
- {
-  Screen* self = (Screen*)  tolua_tousertype(tolua_S,1,0);
-#ifndef TOLUA_RELEASE
-  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'update_all'",NULL);
-#endif
-  {
-   self->update_all();
-  }
- }
- return 0;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'update_all'.",&tolua_err);
- return 0;
-#endif
-}
-#endif //#ifndef TOLUA_DISABLE
-
-/* method: update_rect of class  Screen */
-#ifndef TOLUA_DISABLE_tolua_px_ecl_Screen_update_rect00
-static int tolua_px_ecl_Screen_update_rect00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
-     !tolua_isusertype(tolua_S,1,"Screen",0,&tolua_err) ||
-     !tolua_isusertype(tolua_S,2,"const Rect",0,&tolua_err) ||
-     !tolua_isnoobj(tolua_S,3,&tolua_err)
- )
-  goto tolua_lerror;
- else
-#endif
- {
-  Screen* self = (Screen*)  tolua_tousertype(tolua_S,1,0);
-  const Rect* r = ((const Rect*)  tolua_tousertype(tolua_S,2,0));
-#ifndef TOLUA_RELEASE
-  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'update_rect'",NULL);
-#endif
-  {
-   self->update_rect(*r);
-  }
- }
- return 0;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'update_rect'.",&tolua_err);
- return 0;
-#endif
-}
-#endif //#ifndef TOLUA_DISABLE
-
-/* method: flush_updates of class  Screen */
-#ifndef TOLUA_DISABLE_tolua_px_ecl_Screen_flush_updates00
-static int tolua_px_ecl_Screen_flush_updates00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
-     !tolua_isusertype(tolua_S,1,"Screen",0,&tolua_err) ||
-     !tolua_isnoobj(tolua_S,2,&tolua_err)
- )
-  goto tolua_lerror;
- else
-#endif
- {
-  Screen* self = (Screen*)  tolua_tousertype(tolua_S,1,0);
-#ifndef TOLUA_RELEASE
-  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'flush_updates'",NULL);
-#endif
-  {
-   self->flush_updates();
-  }
- }
- return 0;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'flush_updates'.",&tolua_err);
- return 0;
-#endif
-}
-#endif //#ifndef TOLUA_DISABLE
-
 /* method: set_caption of class  Screen */
 #ifndef TOLUA_DISABLE_tolua_px_ecl_Screen_set_caption00
 static int tolua_px_ecl_Screen_set_caption00(lua_State* tolua_S)
@@ -1495,40 +1368,6 @@ static int tolua_px_ecl_Font_render00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
-/* method: render of class  Font */
-#ifndef TOLUA_DISABLE_tolua_px_ecl_Font_render01
-static int tolua_px_ecl_Font_render01(lua_State* tolua_S)
-{
- tolua_Error tolua_err;
- if (
-     !tolua_isusertype(tolua_S,1,"Font",0,&tolua_err) ||
-     !tolua_isusertype(tolua_S,2,"Surface",0,&tolua_err) ||
-     !tolua_isnumber(tolua_S,3,0,&tolua_err) ||
-     !tolua_isnumber(tolua_S,4,0,&tolua_err) ||
-     !tolua_isstring(tolua_S,5,0,&tolua_err) ||
-     !tolua_isnoobj(tolua_S,6,&tolua_err)
- )
-  goto tolua_lerror;
- else
- {
-  Font* self = (Font*)  tolua_tousertype(tolua_S,1,0);
-  Surface* s = ((Surface*)  tolua_tousertype(tolua_S,2,0));
-  int x = ((int)  tolua_tonumber(tolua_S,3,0));
-  int y = ((int)  tolua_tonumber(tolua_S,4,0));
-  const char* str = ((const char*)  tolua_tostring(tolua_S,5,0));
-#ifndef TOLUA_RELEASE
-  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'render'",NULL);
-#endif
-  {
-   self->render(s,x,y,str);
-  }
- }
- return 0;
-tolua_lerror:
- return tolua_px_ecl_Font_render00(tolua_S);
-}
-#endif //#ifndef TOLUA_DISABLE
-
 /* Open function */
 TOLUA_API int tolua_px_open (lua_State* tolua_S)
 {
@@ -1612,10 +1451,6 @@ TOLUA_API int tolua_px_open (lua_State* tolua_S)
    tolua_endmodule(tolua_S);
    tolua_cclass(tolua_S,"Screen","Screen","",NULL);
    tolua_beginmodule(tolua_S,"Screen");
-    tolua_function(tolua_S,"get_surface",tolua_px_ecl_Screen_get_surface00);
-    tolua_function(tolua_S,"update_all",tolua_px_ecl_Screen_update_all00);
-    tolua_function(tolua_S,"update_rect",tolua_px_ecl_Screen_update_rect00);
-    tolua_function(tolua_S,"flush_updates",tolua_px_ecl_Screen_flush_updates00);
     tolua_function(tolua_S,"set_caption",tolua_px_ecl_Screen_set_caption00);
    tolua_endmodule(tolua_S);
    #ifdef __cplusplus
@@ -1629,7 +1464,6 @@ TOLUA_API int tolua_px_open (lua_State* tolua_S)
     tolua_function(tolua_S,"get_height",tolua_px_ecl_Font_get_height00);
     tolua_function(tolua_S,"get_width",tolua_px_ecl_Font_get_width00);
     tolua_function(tolua_S,"render",tolua_px_ecl_Font_render00);
-    tolua_function(tolua_S,"render",tolua_px_ecl_Font_render01);
    tolua_endmodule(tolua_S);
   tolua_endmodule(tolua_S);
  tolua_endmodule(tolua_S);

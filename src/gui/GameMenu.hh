@@ -30,7 +30,7 @@ namespace enigma { namespace gui {
     private:
         bool on_event (const SDL_Event &e);
         void on_action(gui::Widget *w);
-        void draw_background(ecl::GC &gc);
+        void draw_background();
 
         gui::Widget *resume, *restart, *options, *info, *abort;
         ecl::Surface *zoomed;

@@ -27,7 +27,7 @@ namespace enigma { namespace gui {
         InfoMenu(const char **infotext, int pages);
         
         void on_action(Widget *w);
-        void draw_background(ecl::GC &gc);
+        void draw_background();
     private:
         const char **info;
         int          curPage;

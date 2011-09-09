@@ -420,7 +420,7 @@ namespace enigma { namespace gui {
         update_info();
     }
     
-    void LevelMenu::draw_background(ecl::GC &gc) 
+    void LevelMenu::draw_background() 
     {
         const video::VMInfo *vminfo = video::GetInfo();
         
@@ -480,9 +480,9 @@ namespace enigma { namespace gui {
         invalidate();
     }
 
-    void DifficultyButton::draw(ecl::GC &gc, const ecl::Rect &r) {
+    void DifficultyButton::draw(const ecl::Rect &r) {
         update();
-        ImageButton::draw(gc, r);
+        ImageButton::draw(r);
     }
     
     /* -------------------- AdvanceModeButton -------------------- */
@@ -528,9 +528,9 @@ namespace enigma { namespace gui {
         invalidate();
     }
     
-    void AdvanceModeButton::draw(ecl::GC &gc, const ecl::Rect &r) {
+    void AdvanceModeButton::draw(const ecl::Rect &r) {
         update();
-        ImageButton::draw(gc, r);
+        ImageButton::draw(r);
     }
     
 }} // namespace enigma::gui

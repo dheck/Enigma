@@ -213,14 +213,11 @@ void drawBox(const Rect &r);
 	Screen (Surface *s);
         Screen (SDL_Surface *s);
 
-	void update_all();
-	void update_rect(const Rect& r);
-	void flush_updates();
 	void set_caption(const char* str);
 
         /* ---------- Accessors ---------- */
 
-        Surface *get_surface() const { return m_surface; }
+        Surface *getSurface() const { return m_surface; }
 
         Rect size() const;
         int width() const;
@@ -230,8 +227,6 @@ void drawBox(const Rect &r);
         // Variables.
         Surface     *m_surface;
         SDL_Surface *m_sdlsurface;
-	RectList     m_dirtyrects;
-        bool         update_all_p;
 
 	Screen(const Screen&);
 	Screen& operator=(const Screen&);
@@ -310,7 +305,6 @@ void drawBox(const Rect &r);
 
 /* -------------------- Functions -------------------- */
 
-    Screen *OpenScreen (int w, int h, int bipp);
     Screen* DisplayFormat(Screen* s);
 
 

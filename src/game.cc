@@ -50,7 +50,7 @@ bool game::DrawLevelPreview (ecl::GC &gc, lev::Proxy *levelProxy)
     try {
         server::Msg_LoadLevel (levelProxy, true);
 
-        display::DrawAll(gc);
+        display::DrawAll();
         success = true;
     }
     catch (XLevelLoading &err) {

@@ -472,7 +472,7 @@ namespace enigma { namespace gui {
         }
     }
     
-    void LevelPackMenu::draw_background(ecl::GC &gc) {
+    void LevelPackMenu::draw_background() {
         const video::VMInfo *vminfo = video::GetInfo();
         video::SetWindowCaption(("Enigma - Level Pack Menu"));
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -83,7 +83,7 @@ namespace enigma { namespace gui {
         return false;
     }
     
-    void ScreenshotViewer::draw_background (ecl::GC &gc) {
+    void ScreenshotViewer::draw_background () {
         const video::VMInfo *vminfo = video::GetInfo();
         std::string filename = "screenshots/" + 
                 levelProxy->getLocalSubstitutionLevelPath() + 
@@ -91,6 +91,7 @@ namespace enigma { namespace gui {
         std::string fullPath;
         if (app.resourceFS->findFile(filename, fullPath)) {
             ecl::Surface * image = ecl::LoadImage(fullPath.c_str());
+#if 0 // OPENGL
             if (image->width() == vminfo->width && image->height() == vminfo->height) {
                 ecl::blit(gc, 0,0, image);
             } else {
@@ -100,13 +101,14 @@ namespace enigma { namespace gui {
                 ecl::blit(gc, vminfo->area.x, vminfo->area.y, imageZoomed);
                 delete imageZoomed;
             }
+#endif
             delete image;
         } else {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             blit(GetTexture("menu_bg", ".jpg"), vminfo->mbg_offsetx, vminfo->mbg_offsety);
             Font *f = enigma::GetFont("menufont");
-            f->render (gc, 30, 60, _("No screenshot available:"));
-            f->render (gc, 30, 100, filename.c_str());
+            f->render (30, 60, _("No screenshot available:"));
+            f->render (30, 100, filename.c_str());
         }
     }
 }} // namespace enigma::gui

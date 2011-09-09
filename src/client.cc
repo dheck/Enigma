@@ -350,14 +350,6 @@ void Client::on_keydown(SDL_Event &e)
         switch (keysym) {
         case SDLK_x: 
             abort(); break;
-        case SDLK_t:
-            if (enigma::WizardMode) {
-                Screen *scr = video::GetScreen();
-                ecl::TintRect(scr->get_surface (), display::GetGameArea(), 
-                             100, 100, 100, 0);
-                scr->update_all();
-            }
-            break;
         case SDLK_s:
             if (enigma::WizardMode) {
                 server::Msg_Command ("god");
@@ -527,9 +519,7 @@ void Client::draw_screen()
 {
     switch (m_state) {
     case cls_error: {
-        Screen *scr = video::GetScreen();
-        GC gc (scr->get_surface());
-        blit(gc, 0,0, enigma::GetImage("menu_bg", ".jpg"));
+        blit(enigma::GetTexture("menu_bg", ".jpg"), 0,0);
         Font *f = enigma::GetFont("menufont");
 
         vector<string> lines;
@@ -543,7 +533,7 @@ void Client::draw_screen()
         for (unsigned i=0; i<lines.size(); ) {
             std::string::size_type breakPos = ecl::breakString (f, lines[i], 
                                                                 " ", width);
-            f->render(gc, x,  y, lines[i].substr(0,breakPos).c_str());
+            f->render(x,  y, lines[i].substr(0,breakPos).c_str());
             y += yskip;
             if (breakPos != lines[i].size()) {
                 // process rest of line
@@ -553,8 +543,7 @@ void Client::draw_screen()
                 i++;
             }
         }
-        scr->update_all();
-        scr->flush_updates();
+        SDL_GL_SwapBuffers();
         break;
     }
     default:
@@ -819,7 +808,7 @@ void Client::level_loaded(bool isRestart)
 
     // start screen transition
     GC gc(video::BackBuffer());
-    display::DrawAll(gc);
+    display::DrawAll();
 
     m_effect.reset (video::MakeEffect ((isRestart ? video::TM_SQUARES :
             video::TM_PUSH_RANDOM), video::BackBuffer()));

@@ -36,10 +36,10 @@ namespace enigma { namespace gui {
         ~ScreenshotViewer ();
         
         // Widget interface
-        virtual bool on_event           (const SDL_Event &e);
+        virtual bool on_event(const SDL_Event &e);
     protected:
         // Menu interface.
-        virtual void draw_background    (ecl::GC &gc);
+        virtual void draw_background();
     private:
         lev::Proxy  *levelProxy;
         std::string basePath;

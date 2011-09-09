@@ -35,17 +35,22 @@ namespace display
     struct Image {
         // Variables.
         ecl::Surface *surface;
-        ecl::Rect     rect;      // location of image inside surface
+        ecl::Texture tex;
+        ecl::Rect     rect;     // location of image inside surface
         int          refcount;  // reference count, initialized to 1
 
         // Constructors.
-        Image(ecl::Surface *sfc);
-        Image(ecl::Surface *sfc, const ecl::Rect &r);
-    };
+        Image(ecl::Surface *s);
+        Image(ecl::Surface *s, const ecl::Rect &r);
+        ~Image();
 
-    void incref (Image *i);
-    void decref (Image *i);
-    void draw_image (Image *i, ecl::GC &gc, int x, int y);
+        void incref();
+        void decref();
+        void draw(int x, int y);
+    private:
+        Image(const Image &);
+        Image &operator=(const Image &);
+    };
 
 /* -------------------- ImageModel -------------------- */
 
@@ -60,7 +65,7 @@ namespace display
         ~ImageModel();
 	
         // Model interface
-        void   draw(ecl::GC &gc, int x, int y);
+        void   draw(int x, int y);
         Model *clone();
         void   get_extension (ecl::Rect &r);
         Image *get_image() { return image; }
@@ -80,8 +85,8 @@ namespace display
         void set_callback(ModelCallback *cb);
         void reverse();
         void restart();
-        void draw (ecl::GC &gc, int x, int y);
-        void draw_shadow (ecl::GC &gc, int x, int y);
+        void draw (int x, int y);
+        void draw_shadow (int x, int y);
         Model *get_shadow() const;
         Model *clone();
 
@@ -125,12 +130,12 @@ namespace display
             fg->remove (ml);
 //            bg->remove (ml);
         }
-        void draw(ecl::GC &gc, int x, int y) {
-            bg->draw(gc,x,y);
-            fg->draw(gc,x,y);
+        void draw(int x, int y) {
+            bg->draw(x, y);
+            fg->draw(x, y);
         }
-        void draw_shadow(ecl::GC &gc, int x, int y) {
-            bg->draw_shadow(gc,x,y);
+        void draw_shadow(int x, int y) {
+            bg->draw_shadow(x,y);
 //            fg->draw_shadow(gc,x,y);
         }
         Model *clone() {
@@ -203,8 +208,8 @@ namespace display
         void add_frame(Model *m, double duration);
 
         /* ---------- Model interface ---------- */
-        void draw(ecl::GC &gc, int x, int y);
-        void draw_shadow(ecl::GC &gc, int x, int y);
+        void draw(int x, int y);
+        void draw_shadow(int x, int y);
         Model *clone() { return new Anim2d(rep, extension); }
         void reverse() { reversep = !reversep; }
         void restart ();

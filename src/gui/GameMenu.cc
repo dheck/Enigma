@@ -62,7 +62,7 @@ namespace enigma { namespace gui {
         delete(zoomed);
     }
     
-    void GameMenu::draw_background(ecl::GC &gc) 
+    void GameMenu::draw_background() 
     {
         const video::VMInfo *vminfo = video::GetInfo();
     
@@ -112,7 +112,7 @@ namespace enigma { namespace gui {
             // get the selected part from screen
     //         SDL_Surface *back = video::GetScreen()->get_surface();
             Rect     src_area(game_area.x+x, game_area.y+y, part_width, part_height);
-            Surface *src = Grab(video::GetScreen()->get_surface(), src_area);
+// OPENGL            Surface *src = Grab(video::GetScreen()->get_surface(), src_area);
     
             // zoom multiple times for softer image
     //         const double stepsize = 0.3;
@@ -124,11 +124,12 @@ namespace enigma { namespace gui {
     //             delete src;
     //             src = tmp;
     //         }
-            zoomed = src->zoom(vminfo->width+1, vminfo->height+1);
-            delete src;
+
+            // OPENGL zoomed = src->zoom(vminfo->width+1, vminfo->height+1);
+            // delete src;
         }
     
-        ecl::blit(gc, 0,0, zoomed);
+        // OPENGL ecl::blit(gc, 0,0, zoomed);
     }
     
     bool GameMenu::on_event (const SDL_Event &e) 

@@ -39,7 +39,7 @@ namespace enigma { namespace gui {
         add(pgdown, Rect(vminfo.width-(vshrink?15:30), vminfo.height/2 +(vshrink?35:70), vshrink?10:20, vshrink?25:50));        
     }
     
-    void InfoMenu::draw_background(ecl::GC &gc) {
+    void InfoMenu::draw_background() {
         const video::VMInfo &vminfo = *video::GetInfo();
         const int vshrink = vminfo.width < 640 ? 1 : 0;
 
@@ -58,7 +58,7 @@ namespace enigma { namespace gui {
         }
         for (int i = 0; info[row]; row++, i++) {
             const char *t = _(info[row]);
-            f->render (gc, (vshrink?20:40) + (vminfo.width-(vshrink?320:640))/2, 
+            f->render ((vshrink?20:40) + (vminfo.width-(vshrink?320:640))/2, 
                     (vshrink?10:20) + yoff[vminfo.tt] + (vminfo.height-(vshrink?240:480))/2 + i*(f->get_height() + ygap[vminfo.tt]), t);
         }
     }

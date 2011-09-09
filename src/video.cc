@@ -401,7 +401,7 @@ bool video::SetInputGrab (bool onoff)
 
 Surface* video::BackBuffer() {
     if (back_buffer==0) {
-        back_buffer= Duplicate(gScreen->get_surface());
+        back_buffer = MakeSurface(gSdlScreen->w, gSdlScreen->h, gSdlScreen->format->BitsPerPixel);
     }
     return back_buffer;
 }
@@ -648,12 +648,6 @@ VideoModes video::GetVideoMode() {
     return current_video_mode;
 }
 
-
-// void Video_SDL::toggle_fullscreen() 
-// {
-// }
-
-
 bool video::IsFullScreen()
 {
     if (SDL_Surface *s = gSdlScreen)
@@ -706,7 +700,7 @@ void video::Screenshot (const std::string &fname)
         ecl::FolderCreate(directory);
     }
 
-    ecl::SavePNG (ecl::Grab(gScreen->get_surface(), video_modes[current_video_mode].area), fname);
+// OPENGL    ecl::SavePNG (ecl::Grab(gScreen->get_surface(), video_modes[current_video_mode].area), fname);
     enigma::Log << "Wrote screenshot to '" << fname << "\n";
 }
 
@@ -714,6 +708,7 @@ void video::Screenshot (const std::string &fname)
 
 void video::FX_Fade(FadeMode mode) 
 {
+#if 0 // OPENGL
     Surface *d = gScreen->get_surface();
     const double fadesec = 0.6;
     double v = 255/fadesec;
@@ -749,10 +744,12 @@ void video::FX_Fade(FadeMode mode)
     gScreen->update_all();
     gScreen->flush_updates();
     delete buffer;
+#endif
 }
 
 void video::FX_Fly (Surface *newscr, int originx, int originy) 
 {
+
     double rest_time = 0.5;
 
     double velx = -originx / rest_time;
@@ -761,20 +758,20 @@ void video::FX_Fly (Surface *newscr, int originx, int originy)
     double origx = originx;
     double origy = originy;
 
-    Screen *scr = gScreen;
-    GC scrgc(scr->get_surface());
-
     while (rest_time > 0)
     {
         Uint32 otime = SDL_GetTicks();
 
+#if 0 // OPENGL
         Rect r(static_cast<int>(origx),
                static_cast<int>(origy),
                scr->width(), scr->height());
+        Screen *scr = gScreen;
+        GC scrgc(scr->get_surface());
         blit (scrgc, r.x, r.y, newscr);
 
-        scr->update_rect(r);
-        scr->flush_updates();
+        SDL_GL_SwapBuffers();
+#endif
 
         double dt = (SDL_GetTicks()-otime)/1000.0;
         if (dt > rest_time)
@@ -807,7 +804,7 @@ namespace
 Effect_Push::Effect_Push(ecl::Surface *newscr_, int originx_, int originy_)
 : rest_time (0.7),
   newscr (newscr_),
-  oldscr (Duplicate(gScreen->get_surface())),
+  oldscr (NULL), // OPENGL Duplicate(gScreen->get_surface())),
   originx (originx_),
   originy (originy_),
   velx (-2 * originx / rest_time),
@@ -822,8 +819,6 @@ Effect_Push::Effect_Push(ecl::Surface *newscr_, int originx_, int originy_)
 
 void Effect_Push::tick (double dtime)
 {
-    Screen *scr = gScreen;
-    GC scrgc(scr->get_surface());
 
     if (rest_time > 0) {
         if (dtime > rest_time)
@@ -834,29 +829,27 @@ void Effect_Push::tick (double dtime)
         x = (accx*t + velx)*t + originx;
         y = (accy*t + vely)*t + originy;
 
+#if 0 // OPENGL
+        Screen *scr = gScreen;
+        GC scrgc(scr->get_surface());
         blit (scrgc, (int)x-originx, (int)y, oldscr.get());
         blit (scrgc, (int)x, (int)y-originy, oldscr.get());
         blit (scrgc, (int)x-originx, (int)y-originy, oldscr.get());
 
         blit (scrgc, (int)x, (int) y, newscr);
+#endif
 
-        scr->update_all();
-        scr->flush_updates();
     }
     else {
-        blit(scrgc, 0,0, newscr);
-        scr->update_all();
-        scr->flush_updates();
+// OPENGL        blit(scrgc, 0,0, newscr);
     }
+    SDL_GL_SwapBuffers();
 }
 
 bool Effect_Push::finished() const
 {
     return rest_time <= 0;
 }
-
-
-
 
 TransitionEffect *
 video::MakeEffect (TransitionModes tm, ecl::Surface *newscr)

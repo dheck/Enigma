@@ -467,16 +467,17 @@ void Application::init(int argc, char **argv)
         Log << message;
             
         Screen *scr = video::GetScreen();
-        GC gc (scr->get_surface());
+
         Font *f = enigma::GetFont("menufont");
-        f->render (gc, 80, 240, message.c_str());
-        set_color(gc, 200,200,200);
-        hline(gc, 170, 280, 300);
-        hline(gc, 170, 300, 300);
-        vline(gc, 170, 280, 20);
-        vline(gc, 470, 280, 20);
-        scr->update_all ();
-        scr->flush_updates();
+        // OPENGL
+        // f->render (80, 240, message.c_str());
+        // set_color(gc, 200,200,200);
+        // hline(gc, 170, 280, 300);
+        // hline(gc, 170, 300, 300);
+        // vline(gc, 170, 280, 20);
+        // vline(gc, 470, 280, 20);
+        // scr->update_all ();
+        // scr->flush_updates();
         
         int i = 0;
         for (int m=0; m<3; m++) {
@@ -488,9 +489,8 @@ void Application::init(int argc, char **argv)
             for (it = proxies.begin(); it != proxies.end(); it++, i++) {
                 Log << "Make preview " << (*it)->getId() << "\n";
                 gui::LevelPreviewCache::makeSystemPreview(*it, systemAppDataPath);
-                vline(gc, 170 + i*150 / size, 280, 20);
-                scr->update_all ();
-                scr->flush_updates();
+                // OPENGL vline(gc, 170 + i*150 / size, 280, 20);
+                SDL_GL_SwapBuffers();
             }
         }
         Log << "Maske preview finished succesfully\n";

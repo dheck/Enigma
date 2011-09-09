@@ -51,7 +51,7 @@ namespace enigma { namespace gui {
 
         bool on_event (const SDL_Event &e);
         void on_action(Widget *w);
-        void draw_background(ecl::GC &gc);
+        void draw_background();
 
     private:
         static std::map<std::string, std::string> groupLastSelectedIndex;

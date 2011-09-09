@@ -384,27 +384,31 @@ void Model::get_extension (ecl::Rect &r)
 
 Image::Image(ecl::Surface *sfc)
 : surface(sfc), rect(surface->size()), refcount(1)
-{}
+{
+    ecl::CreateTexture(sfc->get_surface(), &tex);
+}
 
 Image::Image(ecl::Surface *sfc, const ecl::Rect &r)
 : surface(sfc), rect(r), refcount(1)
-{}
-
-
-void display::incref(Image *i) { 
-    ++i->refcount; 
-}
-
-void display::decref (Image *i) {
-    if (-- i->refcount == 0) {
-        delete i;
-    }
-}
-
-
-void display::draw_image (Image *i, ecl::GC &gc, int x, int y) 
 {
-    blit(gc, x, y, i->surface, i->rect);
+    ecl::CreateTexture(sfc->get_surface(), &tex);
+}
+
+Image::~Image() {
+    glDeleteTextures(1, &tex.id);
+}
+
+void Image::incref() { 
+    ++refcount; 
+}
+
+void Image::decref() {
+    if (--refcount == 0)
+        delete this;
+}
+
+void Image::draw(int x, int y) {
+    blit(tex, x, y, rect);
 }
 
 /* -------------------- ImageModel -------------------- */
@@ -413,7 +417,7 @@ ImageModel::ImageModel (Image *i, int xo, int yo)
 : image(i), xoff(xo), yoff(yo) 
 {
     assert(image);
-    incref(image);
+    image->incref();
 }
 
 ImageModel::ImageModel(Surface *s, int xo, int yo)
@@ -425,11 +429,11 @@ ImageModel::ImageModel(Surface *s, const ecl::Rect &r, int xo, int yo)
 {}
 
 ImageModel::~ImageModel() {
-    decref(image); 
+    image->decref(); 
 }
 	
-void ImageModel::draw(ecl::GC &gc, int x, int y) {
-    draw_image (image, gc, x+xoff, y+yoff);
+void ImageModel::draw(int x, int y) {
+    image->draw(x+xoff, y+yoff);
 }
 
 Model *ImageModel::clone() { 
@@ -480,12 +484,12 @@ void ShadowModel::restart() {
     shade->restart(); 
 }
 
-void ShadowModel::draw(ecl::GC &gc, int x, int y) {
-    model->draw(gc,x,y);
+void ShadowModel::draw(int x, int y) {
+    model->draw(x,y);
 }
 
-void ShadowModel::draw_shadow(ecl::GC &gc, int x, int y) {
-    shade->draw(gc,x,y);
+void ShadowModel::draw_shadow(int x, int y) {
+    shade->draw(x,y);
 }
 
 Model *ShadowModel::get_shadow() const { 
@@ -555,20 +559,20 @@ void Anim2d::add_frame(Model *m, double duration) {
     extension = boundingbox (r1, r2);
 }
 
-void Anim2d::draw(ecl::GC &gc, int x, int y) 
+void Anim2d::draw(int x, int y) 
 {
     if (!finishedp) {
         AnimFrame *f =rep->frames[curframe];
-        f->model->draw(gc,x,y);
+        f->model->draw(x, y);
         changedp = false;
     }
 }
         
-void Anim2d::draw_shadow (ecl::GC &gc, int x, int y) 
+void Anim2d::draw_shadow(int x, int y) 
 {
     if (!finishedp) {
         AnimFrame *f =rep->frames[curframe];
-        f->model->draw_shadow(gc,x,y);
+        f->model->draw_shadow(x, y);
     }
 }
 

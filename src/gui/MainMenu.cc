@@ -223,9 +223,9 @@ namespace enigma { namespace gui {
         invalidate_all();
     }
     
-    void MainHelpMenu::draw_background(ecl::GC &gc) {
+    void MainHelpMenu::draw_background() {
         video::SetWindowCaption (("Enigma - Help Menu"));
-        blit(gc, 0,0, enigma::GetImage("menu_bg", ".jpg"));
+        blit(enigma::GetTexture("menu_bg", ".jpg"), 0, 0);
     }
     
     void MainHelpMenu::tick(double dtime) {
@@ -353,7 +353,7 @@ namespace enigma { namespace gui {
     }
 
 
-    void MainMenu::draw_background(ecl::GC &gc) 
+    void MainMenu::draw_background() 
     {
         const video::VMInfo *vminfo = video::GetInfo();
     
@@ -374,7 +374,7 @@ namespace enigma { namespace gui {
         blit(logo, x0, y0[vminfo->tt]);
 
         Font *f = enigma::GetFont("levelmenu");
-        f->render (gc, 5, vminfo->height - 20, app.getVersionInfo().c_str());
+        f->render (5, vminfo->height - 20, app.getVersionInfo().c_str());
     }
     
     bool MainMenu::on_event (const SDL_Event &e) {

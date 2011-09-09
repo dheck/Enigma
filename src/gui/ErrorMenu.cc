@@ -88,8 +88,8 @@ namespace enigma { namespace gui {
         }
     }
     
-    void ErrorMenu::draw_background (ecl::GC &gc) {    
-        blit(gc, 0,0, enigma::GetImage("menu_bg", ".jpg"));
+    void ErrorMenu::draw_background () {    
+        blit(enigma::GetTexture("menu_bg", ".jpg"), 0,0);
         Font *f = enigma::GetFont("menufont");
 
         vector<string> lines;
@@ -103,7 +103,7 @@ namespace enigma { namespace gui {
         for (unsigned i=0; i<lines.size(); ) {
             std::string::size_type breakPos = breakString(f, lines[i], 
                     " ", width);
-            f->render(gc, x,  y, lines[i].substr(0,breakPos).c_str());
+            f->render(x,  y, lines[i].substr(0,breakPos).c_str());
             y += yskip;
             if (breakPos != lines[i].size()) {
                 // process rest of line

@@ -88,8 +88,8 @@ void TextField::tick (double dtime) {
     }
 }
 
-void TextField::draw(ecl::GC &gc, const ecl::Rect &r) {
-    Button::draw(gc,r);
+void TextField::draw(const ecl::Rect &r) {
+    Button::draw(r);
     Font   *f    = menufont;
     int     h    = f->get_height();
     int     w_pre    = f->get_width(textPreCursor.c_str());
@@ -107,12 +107,12 @@ void TextField::draw(ecl::GC &gc, const ecl::Rect &r) {
         // cursor would be right of textfiled - shift centered text left
         x = get_x() + get_w() - 5 - w_pre;
     
-    f->render (gc, x, y, textPreCursor.c_str());
+    f->render (x, y, textPreCursor.c_str());
     
     x += w_pre; 
     if (m_activep || get_parent()->is_key_focus(this)) {
         if (showCursor) {
-            set_color(gc, 200,200,200);
+            ; // OPENGL set_color(gc, 200,200,200);
 
 // TODO: OPENGL
 //            vline(gc, x, y, h);
@@ -120,7 +120,7 @@ void TextField::draw(ecl::GC &gc, const ecl::Rect &r) {
         x += w_cursor;
     }
     
-    f->render(gc, x, y, textPostCursor.c_str());
+    f->render(x, y, textPostCursor.c_str());
    
 }
 

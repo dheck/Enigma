@@ -29,7 +29,7 @@ namespace enigma { namespace gui {
         SearchMenu ();
         
         void on_action(Widget *w);
-        void draw_background(ecl::GC &gc);
+        void draw_background();
         bool isSearchQuit();
         
     private:

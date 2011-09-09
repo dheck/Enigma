@@ -37,8 +37,8 @@ namespace ecl
         virtual int get_width(const char *str, Font * altFont = NULL) = 0;
 
         virtual Surface *render(const char *str) = 0;
-        virtual void render(const GC &gc, int x, int y, const char *str) = 0;
-        virtual void render(const GC &gc, int x, int y, std::string text,
+        virtual void render(int x, int y, const char *str) = 0;
+        virtual void render(int x, int y, std::string text,
                 Font * altFont = NULL, int maxwidth = -1);
     };
 

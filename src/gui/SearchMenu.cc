@@ -87,7 +87,7 @@ namespace enigma { namespace gui {
         }
     }
     
-    void SearchMenu::draw_background(ecl::GC &gc) {
+    void SearchMenu::draw_background() {
         const video::VMInfo &vminfo = *video::GetInfo();
 
         video::SetWindowCaption(("Enigma - Search Menu"));

@@ -66,7 +66,7 @@ namespace enigma { namespace gui {
         virtual void activate();
         virtual void tick (double dtime);
         virtual bool on_event(const SDL_Event &/*e*/);
-        void draw(ecl::GC &gc, const ecl::Rect &r);
+        void draw(const ecl::Rect &r);
 
     protected:
         double cursorTime;

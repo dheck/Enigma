@@ -57,11 +57,11 @@ namespace enigma { namespace gui {
             if (monoChars.empty() || monoChars.find_first_of(c[0]) != 
                     std::string::npos) {
                 int charWidth = m_font->get_width(c[0]);
-                // centere char into monoWodth
-                f->render (gc, x + (monoWidth-charWidth)/2, y, c);
+                // center char into monoWidth
+                f->render (x + (monoWidth-charWidth)/2, y, c);
                 x += monoWidth;
             } else {
-                f->render (gc, x, y, c);
+                f->render (x, y, c);
                 x += m_font->get_width(c);
             }
         }

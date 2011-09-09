@@ -123,11 +123,13 @@ namespace enigma { namespace gui {
     ecl::Surface *LevelPreviewCache::newPreview (lev::Proxy *levelProxy) {
         const video::VMInfo &vminfo = *video::GetInfo();
         Surface *surface = 0;
+#if 0 //OPENGL
         ecl::GC gc(video::BackBuffer());
         if (game::DrawLevelPreview (gc, levelProxy)) { 
             surface = Resample (video::BackBuffer(), 
                         vminfo.gamearea, vminfo.thumbw, vminfo.thumbh); 
         }
+#endif
         return surface;
     }
     

@@ -77,7 +77,7 @@ namespace display
         void redraw_world_area (const WorldArea &a);
 
         void update_screen();
-        void draw_all (ecl::GC &gc);
+        void draw_all();
         void update_offset();
 
     private:
@@ -117,8 +117,8 @@ namespace display
 
         /* ---------- DisplayLayer interface ---------- */
         virtual void prepare_draw (const WorldArea &) {}
-        virtual void draw (ecl::GC &gc, const WorldArea &a, int x, int y) = 0;
-        virtual void draw_onepass (ecl::GC &/*gc*/) {}
+        virtual void draw(const WorldArea &a, int x, int y) = 0;
+        virtual void draw_onepass() {}
         virtual void tick (double /*dtime*/) {}
         virtual void new_world (int /*w*/, int /*h*/) {}
 
@@ -176,7 +176,7 @@ namespace display
 
         // DisplayLayer interface.
         void new_world (int w, int h);
-        void draw (ecl::GC &gc, const WorldArea &a, int x, int y);
+        void draw(const WorldArea &a, int x, int y);
 
         // ModelLayer interface
         virtual int redraw_size () const { return m_redrawsize; }
@@ -218,8 +218,8 @@ namespace display
         ~DL_Sprites();
 
         /* ---------- DisplayLayer interface ---------- */
-        void draw (ecl::GC &gc, const WorldArea &a, int x, int y);
-        void draw_onepass (ecl::GC &gc);
+        void draw(const WorldArea &a, int x, int y);
+        void draw_onepass();
         void new_world (int, int);
 
         /* ---------- Member functions ---------- */
@@ -229,7 +229,7 @@ namespace display
         void replace_sprite (SpriteId id, Model *m);
 
         void redraw_sprite_region (SpriteId id);
-        void draw_sprites (bool shades, ecl::GC &gc, const WorldArea &a);
+        void draw_sprites (bool shades, const WorldArea &a);
 
         Model *get_model (SpriteId id) { return sprites[id]->model; }
 
@@ -264,9 +264,9 @@ namespace display
         ~DL_Shadows();
 
         void new_world(int w, int h);
-        void draw (ecl::GC &gc, int xpos, int ypos, int x, int y);
+        void draw (int xpos, int ypos, int x, int y);
 
-        void draw (ecl::GC &gc, const WorldArea &a, int x, int y);
+        void draw (const WorldArea &a, int x, int y);
     private:
         /* ---------- Private functions ---------- */
         void shadow_blit (ecl::Surface *scr, int x, int y,
@@ -313,9 +313,9 @@ namespace display
         {
         }
 
-        void draw (ecl::GC &/*gc*/, const WorldArea &/*a*/, int /*x*/, int /*y*/)
+        void draw (const WorldArea &/*a*/, int /*x*/, int /*y*/)
         {}
-        void draw_onepass (ecl::GC &gc);
+        void draw_onepass ();
 
         RubberHandle add_line (const V2 &p1, const V2 &p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick);
         void set_startpoint (unsigned id, const V2 &p1);
@@ -471,11 +471,11 @@ namespace display
         /* ---------- Screen updates ---------- */
         void redraw (ecl::Screen *scr);
         void redraw_all (ecl::Screen *scr);
-        void draw_all (ecl::GC &gc);
+        void draw_all ();
 
     private:
         void set_follower (Follower *f);
-        void draw_borders (ecl::GC &gc);
+        void draw_borders ();
 
         /* ---------- Variables ---------- */
         Uint32         last_frame_time;

@@ -43,7 +43,7 @@ namespace enigma { namespace gui {
     public:
         LevelmodeButton(bool initialMode = false);
         bool isLinkOnly();
-        virtual void draw(ecl::GC &gc, const ecl::Rect &r);
+        virtual void draw(const ecl::Rect &r);
     private:
         void update();
         bool mode;
@@ -69,7 +69,7 @@ namespace enigma { namespace gui {
             bool forceGroupReasign = false);
         
         void on_action(Widget *w);
-        void draw_background(ecl::GC &gc);
+        void draw_background();
         bool isUndoQuit();
     private:
         void updateLocationList();

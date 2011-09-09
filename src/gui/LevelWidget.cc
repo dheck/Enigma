@@ -55,19 +55,19 @@ namespace enigma { namespace gui {
         ifirst = curIndex->getScreenFirstPosition();
         preview_cache = LevelPreviewCache::instance();
         scoreMgr = lev::ScoreManager::instance();
-        img_link        = enigma::GetImage("ic-link");
-        img_copy        = enigma::GetImage("ic-copy");
-        img_feather     = enigma::GetImage("ic-feather");
-        img_easy        = enigma::GetImage("completed-easy");
-        img_hard        = enigma::GetImage("completed");
-        img_obsolete     = enigma::GetImage(("ic-obsolete" + vminfo.thumbsext).c_str());
-        img_outdated     = enigma::GetImage(("ic-outdated" + vminfo.thumbsext).c_str());
-        img_unavailable = enigma::GetImage("unavailable");
-        img_par         = enigma::GetImage("par");
-        img_wrEasy      = enigma::GetImage("ic-wr-easy");
-        img_wrDifficult = enigma::GetImage("ic-wr-difficult");
-        img_border      = enigma::GetImage(("thumbborder" + vminfo.thumbsext).c_str());
-        img_editborder  = enigma::GetImage(("editborder" + vminfo.thumbsext).c_str());
+        img_link        = enigma::GetTexture("ic-link");
+        img_copy        = enigma::GetTexture("ic-copy");
+        img_feather     = enigma::GetTexture("ic-feather");
+        img_easy        = enigma::GetTexture("completed-easy");
+        img_hard        = enigma::GetTexture("completed");
+        img_obsolete    = enigma::GetTexture(("ic-obsolete" + vminfo.thumbsext).c_str());
+        img_outdated    = enigma::GetTexture(("ic-outdated" + vminfo.thumbsext).c_str());
+        img_unavailable = enigma::GetTexture("unavailable");
+        img_par         = enigma::GetTexture("par");
+        img_wrEasy      = enigma::GetTexture("ic-wr-easy");
+        img_wrDifficult = enigma::GetTexture("ic-wr-difficult");
+        img_border      = enigma::GetTexture(("thumbborder" + vminfo.thumbsext).c_str());
+        img_editborder  = enigma::GetTexture(("editborder" + vminfo.thumbsext).c_str());
         thumbmode       = (vminfo.thumbw == 160) ? 2 : ((vminfo.thumbw == 120) ? 1 : 0);
     }
     
@@ -213,7 +213,7 @@ namespace enigma { namespace gui {
     	return (thumbmode == 2) ? large : ((thumbmode == 1) ? medium : small);
     }
 
-    bool LevelWidget::draw_level_preview(ecl::GC &gc, int x, int y, int borderWidth,
+    bool LevelWidget::draw_level_preview(int x, int y, int borderWidth,
             lev::Proxy *proxy, bool selected, bool isCross, bool locked,
             bool allowGeneration, bool &didGenerate) { 
         // Draw button with level preview
@@ -223,17 +223,19 @@ namespace enigma { namespace gui {
             return false;
    
         if (selected) {
-            blit (gc, x - borderWidth, y - borderWidth, displayEditBorder ? img_editborder : img_border);
-            blit (gc, x, y, img);
+            blit (displayEditBorder ? img_editborder : img_border, x - borderWidth, y - borderWidth);
+// OPENGL            blit (gc, x, y, img);
         } else {
-            img->set_alpha (127);
-            blit (gc, x, y, img);
-            img->set_alpha(255);
+// OPENGL            img->set_alpha (127);
+            glColor3f(0.5, 0.5, 0.5);
+// OPENGL            blit (img, x, y);
+            glColor3f(1, 1, 1);
+// OPENGL            img->set_alpha(255);
         }
 
         // Shade unavailable levels
         if (locked)
-            blit (gc, x, y, img_unavailable);
+            blit(img_unavailable, x, y);
     
         if (displayScoreIcons) {
             // Draw solved/changed icons on top of level preview
@@ -244,8 +246,8 @@ namespace enigma { namespace gui {
             //   Silver: Level beaten in easy mode (normal mode available)
             //   Gold: Level beaten in normal mode - easy not availabe
             //   Silver + Gold: Level beaten in all modes - easy available
-            Surface *useAsEasy = NULL;
-            Surface *useAsDifficult = NULL;
+            Texture useAsEasy = ecl::dummyTexture;
+            Texture useAsDifficult = ecl::dummyTexture;
             if (proxy->hasEasyMode()) {
                 useAsEasy = img_feather;
                 if (scoreMgr->isSolved(proxy, DIFFICULTY_EASY))
@@ -256,44 +258,40 @@ namespace enigma { namespace gui {
             
             if (app.state->getInt("Difficulty") == DIFFICULTY_HARD) {
                 // draw golden medal over silber medal
-                if (useAsEasy != NULL)
-                    blit (gc, x+thumb_off(3,3,24), y, useAsEasy);
-                if (useAsDifficult != NULL)
-                    blit (gc, x+thumb_off(8,8,29), y, useAsDifficult);
+                blit(useAsEasy, x+thumb_off(3,3,24), y);
+                blit(useAsDifficult, x+thumb_off(8,8,29), y);
             }
             else {
                 // draw silver medal over golden medal
-                if (useAsDifficult != NULL)
-                    blit (gc, x+thumb_off(8,8,29), y, useAsDifficult);
-                if (useAsEasy != NULL)
-                    blit (gc, x+thumb_off(3,3,24), y, useAsEasy);
+                blit (useAsDifficult, x+thumb_off(8,8,29), y);
+                blit (useAsEasy, x+thumb_off(3,3,24), y);
             }
         
             // Add warning sign if level has been changed since player solved it
             if (scoreMgr->isObsolete(proxy, app.state->getInt("Difficulty")))
-                blit(gc, x-2, y-2, img_obsolete);
+                blit(img_obsolete, x-2, y-2);
             else if (scoreMgr->isOutdated(proxy, app.state->getInt("Difficulty")))
-                blit(gc, x-2, y-2, img_outdated);
+                blit(img_outdated, x-2, y-2);
         
             // Add icon if worldrecord or par
             if (scoreMgr->bestScoreReached(proxy, app.state->getInt("Difficulty"))) {
-                blit(gc, x+thumb_off(5,35,59), y+thumb_off(2,5,20),
-                        (app.state->getInt("Difficulty") != DIFFICULTY_HARD &&
-                        proxy->hasEasyMode()) ? img_wrEasy : img_wrDifficult);
+                blit((app.state->getInt("Difficulty") != DIFFICULTY_HARD &&
+                                proxy->hasEasyMode()) ? img_wrEasy : img_wrDifficult, 
+                        x+thumb_off(5,35,59), y+thumb_off(2,5,20));
             } else if (scoreMgr->parScoreReached(proxy, app.state->getInt("Difficulty"))){
-                blit(gc, x+thumb_off(33,33,55), y+thumb_off(12,12,12), img_par);
+                blit(img_par, x+thumb_off(33,33,55), y+thumb_off(12,12,12));
             }
         } else {
             // Draw solved/changed icons on top of level preview
             if (isCross) 
-                blit (gc, x+4, y+4, img_link);
+                blit (img_link, x+4, y+4);
             else
-                blit (gc, x+4, y+4, img_copy);
+                blit (img_copy, x+4, y+4);
         }
         return true;
     }
     
-    void LevelWidget::draw(ecl::GC &gc, const ecl::Rect &r) {
+    void LevelWidget::draw(const ecl::Rect &r) {
         const video::VMInfo &vminfo = *video::GetInfo();
         const int imgw = vminfo.thumbw;       // Size of the preview images
         const int imgh = vminfo.thumbh;
@@ -329,7 +327,7 @@ namespace enigma { namespace gui {
                 int imgy = ypos + bwidth;
                 if (levelProxy != NULL) {
                     bool didGenerate;
-                    bool didDraw = draw_level_preview(gc, imgx, imgy, bwidth, levelProxy, 
+                    bool didDraw = draw_level_preview(imgx, imgy, bwidth, levelProxy, 
                             i == iselected, !curIndex->isSource(levelProxy), 
                             !curIndex->mayPlayLevel(i+1),
                             allowGeneration, didGenerate);
@@ -351,7 +349,7 @@ namespace enigma { namespace gui {
                 Font    *smallfnt = enigma::GetFont("levelmenu");
                 Font    *altsmallfnt = enigma::GetFont("smallalternative");;
                 std::string caption = levelProxy->getTitle();
-                smallfnt->render (gc,
+                smallfnt->render(
                           xpos + buttonw/2 - ecl::Min(smallfnt->get_width(caption.c_str(), altsmallfnt)/2, (buttonw+hgap)/2),
                           imgy + imgh + 2,
                           caption, altsmallfnt, buttonw + hgap);

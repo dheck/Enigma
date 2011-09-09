@@ -34,9 +34,9 @@
 using namespace ecl;
 using namespace std;
 
-void Font::render(const GC &gc, int x, int y, std::string text,
-                  Font * altFont, int maxwidth) {
-    render(gc, x, y, text.c_str());
+void Font::render(int x, int y, std::string text,
+        Font * altFont, int maxwidth) {
+    render(x, y, text.c_str());
 }
 
 std::string::size_type 
@@ -79,26 +79,29 @@ namespace
     class BitmapFont : public Font {
         vector<Rect>    char_rects;
         vector<int>     advance;
-        Surface         *surface;
+        Texture fontTex;
     public:
         BitmapFont(Surface *s, const char *descr);
-        ~BitmapFont() { delete surface; }
+        ~BitmapFont() { glDeleteTextures(1, &fontTex.id); }
 
-        int get_lineskip() { return surface->height() + 3; }
+        int get_lineskip() { return fontTex.height + 3; }
         int get_width(char c);
         virtual int get_width(const char *str, Font * altFont = NULL);
         int get_height();
 
         virtual Surface *render(const char *str);
-        virtual void render(const GC &gc, int x, int y, const char *str);
-        virtual void render(const GC &gc, int x, int y, std::string text,
+        virtual void render(int x, int y, const char *str);
+        virtual void render(int x, int y, std::string text,
                 Font * altFont = NULL, int maxwidth = -1);
     };
 }
 
 BitmapFont::BitmapFont(Surface *s, const char *descr)
-    : char_rects(256), advance(256), surface(s)
+    : char_rects(256), advance(256)
 {
+    CreateTexture(s->get_surface(), &fontTex);
+    delete s;
+
     // Read and interpret the font description file.
     // expected line format:
     // charno xpos width xadvance
@@ -117,6 +120,7 @@ BitmapFont::BitmapFont(Surface *s, const char *descr)
         if (adv == 0)
             std::cout << "BitFont 0\n";
     }
+
 }
 
 int BitmapFont::get_width(char c) {
@@ -147,21 +151,26 @@ int BitmapFont::get_width(const char *str, Font * altFont) {
 }
 
 int BitmapFont::get_height() {
-    return surface->height();
+    return fontTex.height;
 }
 
 Surface * BitmapFont::render(const char *str) {
     Surface *s = MakeSurface(get_width(str), get_height(), 16);
     s->set_color_key(0,0,0);
-    render (GC(s), 0, 0, str);
+
+    // OPENGL
+    // GC gc(s);
+
+
+    // render (GC(s), 0, 0, str);
     return s;
 }
 
-void BitmapFont::render(const GC &gc, int x, int y, const char *str) {
-    render(gc, x, y, std::string(str));
+void BitmapFont::render(int x, int y, const char *str) {
+    render(x, y, std::string(str));
 }
 
-void BitmapFont::render(const GC &gc, int x, int y, std::string text,
+void BitmapFont::render(int x, int y, std::string text,
         Font * altFont, int maxwidth) {
     int width = 0;
     for (const char *p=text.c_str(); *p; ++p) {
@@ -178,7 +187,7 @@ void BitmapFont::render(const GC &gc, int x, int y, std::string text,
                 int charWidth = altFont->get_width(utf8char.c_str());
                 width += charWidth;
                 if (maxwidth <= 0 || width < maxwidth) {
-                   altFont->render(gc, x, y, utf8char.c_str());
+                   altFont->render(x, y, utf8char.c_str());
                     x += altFont->get_width(utf8char.c_str());
                 }
             }
@@ -187,7 +196,7 @@ void BitmapFont::render(const GC &gc, int x, int y, std::string text,
             int charWidth = get_width(*p);
             width += charWidth;
             if (maxwidth <= 0 || width < maxwidth) {
-                blit(gc, x, y, surface, char_rects[int(*p)]);
+                blit(fontTex, x, y, char_rects[int(*p)]);
                 x += charWidth;
             }
         }
@@ -231,7 +240,7 @@ namespace
         virtual int get_width(const char *str, Font * altFont = NULL);
 
         Surface *render (const char *str);
-        void     render (const GC &gc, int x, int y, const char *str);
+        void     render (int x, int y, const char *str);
     };
 }
 
@@ -274,7 +283,7 @@ Surface *TrueTypeFont::render (const char *str)
     return MakeSurface(0, get_height(), 32);
 }
 
-void TrueTypeFont::render (const GC &gc, int x, int y, const char *str) 
+void TrueTypeFont::render (int x, int y, const char *str) 
 {
     Surface *s = render(str);
     Texture tex;

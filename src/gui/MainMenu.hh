@@ -34,7 +34,7 @@ namespace enigma { namespace gui {
         MainMenu();
     private:
         // Menu interface
-        void draw_background(ecl::GC &gc);
+        void draw_background();
         void tick(double dtime);
 
         // Widget interface
@@ -70,7 +70,7 @@ namespace enigma { namespace gui {
         void on_action(gui::Widget *w);
 
         // Menu interface.
-        void draw_background(ecl::GC &gc);
+        void draw_background();
         void tick(double dtime);
 
         // Private methods.
@@ -98,7 +98,7 @@ namespace enigma { namespace gui {
         void on_action(gui::Widget *w);
 
         // Menu interface.
-        void draw_background(ecl::GC &gc);
+        void draw_background();
         void tick(double dtime);
 
         // Variables.

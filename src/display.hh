@@ -56,8 +56,8 @@ namespace display
     class Model : public Animation {
     public:
 
-        virtual void draw(ecl::GC &/*gc*/, int /*x*/, int /*y*/) {}
-        virtual void draw_shadow(ecl::GC &/*gc*/, int /*x*/, int /*y*/) {}
+        virtual void draw(int /*x*/, int /*y*/) {}
+        virtual void draw_shadow(int /*x*/, int /*y*/) {}
 
         virtual Model *get_shadow() const { return 0; }
 
@@ -252,7 +252,7 @@ namespace display
     void            ResizeGameArea (int w, int h);
     const ecl::Rect& GetGameArea ();
 
-    void DrawAll (ecl::GC &gc);
+    void DrawAll ();
     void RedrawAll (ecl::Screen *sfc);
     void Redraw (ecl::Screen *sfc);
     void Tick (double dtime);

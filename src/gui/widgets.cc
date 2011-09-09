@@ -86,7 +86,7 @@ bool Widget::on_event(const SDL_Event &e) {
 
 /* -------------------- Image -------------------- */
 
-void Image::draw (ecl::GC &gc, const ecl::Rect &/*r*/) {
+void Image::draw (const ecl::Rect &/*r*/) {
 //    if (ecl::Surface *s = enigma::GetImage(imgname.c_str()))
 //        blit(gc, get_x(), get_y(), s);
     if (ecl::Surface *s = enigma::GetImage(imgname.c_str())) {
@@ -94,7 +94,7 @@ void Image::draw (ecl::GC &gc, const ecl::Rect &/*r*/) {
         int h=s->height();
         int x = get_x() + (get_w()-w)/2;
         int y = get_y() + (get_h()-h)/2;
-        blit(gc, x, y, s);
+// OPENGL        blit(gc, x, y, s);
     }
 }
 
@@ -119,10 +119,8 @@ void AreaManager::invalidate_all() {
 void AreaManager::refresh() {
     if (!dirtyrects.empty()) {
         video::HideMouse();
-        GC gc(video::GetScreen()->get_surface());
         for (RectList::iterator i = dirtyrects.begin(); i!=dirtyrects.end(); ++i) {
-            top_container->draw(gc, *i);
-            video::GetScreen()->update_rect(*i);
+            top_container->draw(*i);
         }
         video::ShowMouse();
         dirtyrects.clear();
@@ -189,12 +187,12 @@ void Container::exchange_child (Widget *oldChild, Widget *newChild) {
     }
 }
 
-void Container::draw (ecl::GC& gc, const ecl::Rect &r) {
+void Container::draw (const ecl::Rect &r) {
     for (iterator i=begin(); i!=end(); ++i) {
         Widget *w = *i;
         Rect rr = intersect(r, w->get_area());
-        clip(gc, rr);
-        w->draw(gc,rr);
+// OPENGL        clip(gc, rr);
+        w->draw(rr);
     }
 }
 
@@ -558,7 +556,7 @@ bool Label::text_fits(double area_fraction) {
     return w <= get_w()*area_fraction;
 }
 
-void Label::draw (ecl::GC &gc, const ecl::Rect &) 
+void Label::draw (const ecl::Rect &) 
 {
     Font *f = m_font;
     int w, h;
@@ -576,7 +574,7 @@ void Label::draw (ecl::GC &gc, const ecl::Rect &)
     case VALIGN_CENTER: y += (get_h()-h)/2; break;
     }
     // translate if not an empty string
-    f->render (gc, x, y, m_text == "" ? "" : get_text().c_str());
+    f->render (x, y, m_text == "" ? "" : get_text().c_str());
 }
 
 void Label::set_alignment (HAlignment halign, VAlignment valign) {
@@ -632,7 +630,7 @@ bool Button::isHighlight() {
     return highlight;
 }
 
-void Button::draw(ecl::GC &gc, const ecl::Rect &r) {
+void Button::draw(const ecl::Rect &r) {
     const int borderw = 4;
 
     const Texture &t = enigma::GetTexture(m_activep ? "buttonhl" : "button");
@@ -762,8 +760,8 @@ TextButton::TextButton(ActionListener *al) {
     set_listener(al);
 }
 
-void TextButton::draw(ecl::GC &gc, const ecl::Rect &r) {
-    Button::draw(gc,r);
+void TextButton::draw(const ecl::Rect &r) {
+    Button::draw(r);
     Font   *f    = is_pressed() ? menufont_pressed : menufont;
     string  text = get_text();
     int     h    = f->get_height();
@@ -771,7 +769,7 @@ void TextButton::draw(ecl::GC &gc, const ecl::Rect &r) {
     int     x    = get_x() + (get_w()-w)/2;
     int     y    = get_y() + (get_h()-h)/2;
 
-    f->render (gc, x, y, text.c_str());
+    f->render (x, y, text.c_str());
 }
 
 
@@ -921,17 +919,14 @@ void ImageButton::set_images(const string &unselected, const string &selected) {
     fname_unsel = unselected;
 }
 
-void ImageButton::draw(ecl::GC &gc, const ecl::Rect &r) {
-    Button::draw(gc, r);
+void ImageButton::draw(const ecl::Rect &r) {
+    Button::draw(r);
     string &fname = is_pressed() ? fname_sel : fname_unsel;
 
-    if (Surface *s = enigma::GetImage(fname.c_str())) {
-        int w=s->width();
-        int h=s->height();
-        int x = get_x() + (get_w()-w)/2;
-        int y = get_y() + (get_h()-h)/2;
-        blit(gc, x, y, s);
-    }
+    Texture t = enigma::GetTexture(fname.c_str());
+    int x = get_x() + (get_w()-t.width)/2;
+    int y = get_y() + (get_h()-t.height)/2;
+    blit(t, x, y);
 }
 
 /* -------------------- BorderlessImageButton -------------------- */
@@ -950,16 +945,13 @@ void BorderlessImageButton::set_images(const string &unselected,
     fname_mouse = mouseover;
 }
 
-void BorderlessImageButton::draw(ecl::GC &gc, const ecl::Rect &r) {
+void BorderlessImageButton::draw(const ecl::Rect &r) {
     string &fname = m_activep ? fname_mouse : (state ? fname_sel : fname_unsel);
 
-    if (Surface *s = enigma::GetImage(fname.c_str())) {
-        int w=s->width();
-        int h=s->height();
-        int x = get_x() + (get_w()-w)/2;
-        int y = get_y() + (get_h()-h)/2;
-        blit(gc, x, y, s);
-    }
+    Texture t = enigma::GetTexture(fname.c_str());
+    int x = get_x() + (get_w()-t.width)/2;
+    int y = get_y() + (get_h()-t.height)/2;
+    blit(t, x, y);
 }
 
 void BorderlessImageButton::setState(bool isSelected) {

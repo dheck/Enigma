@@ -242,10 +242,10 @@ namespace enigma { namespace gui {
         }
     }
     
-    void Menu::draw (ecl::GC &gc, const ecl::Rect &r)
+    void Menu::draw (const ecl::Rect &r)
     {
-        clip(gc, r);
-        draw_background(gc);
-        Container::draw(gc,r);
+// OPENGL        clip(gc, r);
+        draw_background();
+        Container::draw(r);
     }
 }} // namespace enigma::gui

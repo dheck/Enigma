@@ -74,9 +74,9 @@ namespace enigma { namespace gui {
         invalidate();
     }
 
-    void LevelmodeButton::draw(ecl::GC &gc, const ecl::Rect &r) {
+    void LevelmodeButton::draw(const ecl::Rect &r) {
         update();
-        ImageButton::draw(gc, r);
+        ImageButton::draw(r);
     }
     
     /* -------------------- Sokoball Button -------------------- */
@@ -572,7 +572,7 @@ namespace enigma { namespace gui {
         }
     }
     
-    void LevelPackConfig::draw_background(ecl::GC &gc) {
+    void LevelPackConfig::draw_background() {
         const video::VMInfo *vminfo = video::GetInfo();
 
         video::SetWindowCaption(("Enigma - Level Pack Configuration"));
