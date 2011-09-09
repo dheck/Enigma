@@ -164,7 +164,7 @@ void Client::handle_events()
         }
 
         case SDL_VIDEOEXPOSE: {
-            display::RedrawAll(video::GetScreen());
+//            display::DrawAll();
             break;
         }
 
@@ -469,8 +469,8 @@ void Client::show_help()
     video::HideMouse();
 
     update_mouse_button_state();
-    if (m_state == cls_game)
-        display::RedrawAll(video::GetScreen());
+    // if (m_state == cls_game)
+    //     display::RedrawAll(video::GetScreen());
 
     server::Msg_Pause (false);
     game::ResetGameTimer();
@@ -505,8 +505,8 @@ void Client::show_menu(bool isESC) {
     }
     video::HideMouse();
     update_mouse_button_state();
-    if (m_state == cls_game)
-        display::RedrawAll(screen);
+    // if (m_state == cls_game)
+    //     display::RedrawAll(screen);
 
     server::Msg_Pause (false);
     game::ResetGameTimer();
@@ -652,7 +652,9 @@ void Client::tick (double dtime)
         for (;m_timeaccu >= timestep; m_timeaccu -= timestep) {
             display::Tick (timestep);
         }
-        display::Redraw(video::GetScreen());
+        display::DrawAll();
+        SDL_GL_SwapBuffers();
+
         handle_events();
         break;
     }

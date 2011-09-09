@@ -248,14 +248,12 @@ namespace display
     void Init(bool show_fps = false);
     void Shutdown();
 
-    void            NewWorld (int w, int h);
-    void            ResizeGameArea (int w, int h);
-    const ecl::Rect& GetGameArea ();
+    void NewWorld(int w, int h);
+    void ResizeGameArea(int w, int h);
+    ecl::Rect GetGameArea ();
 
-    void DrawAll ();
-    void RedrawAll (ecl::Screen *sfc);
-    void Redraw (ecl::Screen *sfc);
-    void Tick (double dtime);
+    void DrawAll();
+    void Tick(double dtime);
 
     void SetTextSpeed(int newspeed);
     int GetTextSpeed();

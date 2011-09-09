@@ -104,10 +104,7 @@ namespace enigma { namespace gui {
                 }
             }
     
-            // Be sure to redraw everything, or actors may appear on top
-            // of the stones (actors are drawn in one pass and only
-            // clipped to the screen boundary).
-            display::RedrawAll(video::GetScreen());
+            display::DrawAll();
     
             // get the selected part from screen
     //         SDL_Surface *back = video::GetScreen()->get_surface();

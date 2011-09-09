@@ -503,10 +503,8 @@ void TextDisplay::draw (const ScreenArea &r) {
 DisplayEngine::DisplayEngine (int tilew, int tileh)
 : m_tilew(tilew), m_tileh(tileh),
   m_offset(), 
-  m_new_offset(),
   m_area (),
-  m_width(0), m_height(0),
-  m_redrawp(0,0)
+  m_width(0), m_height(0)
 {
     m_area = video::GetScreen()->size();
     m_screenoffset[0] = m_screenoffset[1] = 0;
@@ -530,12 +528,8 @@ void DisplayEngine::add_layer (DisplayLayer *l) {
 }
 
 void DisplayEngine::set_offset (const V2 &off) {
-    m_offset = m_new_offset = off;
+    m_offset = off;
     world_to_video (off, &m_screenoffset[0], &m_screenoffset[1]);
-}
-
-void DisplayEngine::move_offset (const ecl::V2 &off) {
-    m_new_offset = off;
 }
 
 /*! Scroll the screen contents and mark the newly exposed regions for
@@ -543,39 +537,6 @@ void DisplayEngine::move_offset (const ecl::V2 &off) {
   modified externally since the last call to update_offset(). */
 void DisplayEngine::update_offset () 
 {
-    ecl::Screen *screen = video::GetScreen();
-
-    int oldx = m_screenoffset[0];
-    int oldy = m_screenoffset[1];
-    int newx, newy;
-    world_to_video (m_new_offset, &newx, &newy);
-
-    // if (newx != oldx || newy != oldy) {
-    //     const Rect &a = get_area();
-    //     Rect oldarea (a.x+oldx, a.y+oldy, a.w, a.h);
-    //     Rect newarea (a.x+newx, a.y+newy, a.w, a.h);
-    //     Rect common = intersect(newarea, oldarea);
-
-    //     // Blit overlapping screen area from old to new position
-    //     GC screengc (screen->get_surface());
-    //     Rect blitrect (common.x-oldx, common.y-oldy, common.w, common.h);
-    //     blit (screengc, common.x-newx, common.y-newy, screen->get_surface(), blitrect);
-    //     blitrect.x = common.x-newx;
-    //     blitrect.y = common.y-newy;
-    //     screen->update_rect(blitrect);
-
-    //     // Update offset
-    //     set_offset (V2(newx/double(m_tilew), newy/double(m_tileh)));
-
-    //     // Mark areas that could not be copied from old screen for redraw
-    //     RectList rl;
-    //     rl.push_back (get_area());
-    //     rl.sub (blitrect);
-    //     for (RectList::iterator i=rl.begin(); i!=rl.end(); ++i) {
-    //         Rect r = screen_to_world(*i);
-    //         mark_redraw_area (r);
-    //     }
-    // }
 }
 
 void DisplayEngine::set_screen_area (const ecl::Rect & r) {
@@ -588,7 +549,6 @@ void DisplayEngine::new_world (int w, int h)
     m_height = h;
     m_offset = m_new_offset = V2();
     m_screenoffset[0] = m_screenoffset[1] = 0;
-    m_redrawp.resize(w, h, 1);
 
     for (unsigned i=0; i<m_layers.size(); ++i)
         m_layers[i]->new_world(w,h);
@@ -656,98 +616,24 @@ V2 DisplayEngine::to_world (const V2 &pos) {
         V2((pos[0]-get_area().x)/m_tilew, (pos[1]-get_area().y)/m_tileh);
 }
 
-void DisplayEngine::mark_redraw_area (const WorldArea &wa, int delay) 
-{
-    int x2 = Min(m_width, wa.x+wa.w);
-    int y2 = Min(m_height, wa.y+wa.h);
-    for (int x=Max(0,wa.x); x <x2; x++)
-        for (int y=Max(0,wa.y); y<y2; y++) {
-            int d = m_redrawp(x, y);
-            if (d == 0 || 1+delay < d)
-                m_redrawp(x,y) = 1 + delay;
-        }
-}
-
-void DisplayEngine::mark_redraw_screen() {
-    mark_redraw_area(screen_to_world(m_area));
-}
-
 void DisplayEngine::draw_all() 
 {
     WorldArea wa = screen_to_world (get_area());
 
-    // Fill screen area not covered by world
-    {
-        RectList rl;
-        rl.push_back (get_area());
-        rl.sub (world_to_screen (WorldArea (0,0, m_width, m_height)));
-        glColor3i(200, 0, 200);
-        for (RectList::iterator i=rl.begin(); i!=rl.end(); ++i)
-            drawBox(*i);
-    }
+    const video::VMInfo *info = video::GetInfo();
 
+    glEnable(GL_SCISSOR_TEST);
+    Rect a = get_area(); //world_to_screen (WorldArea (0,0, m_width, m_height));
+    glScissor(a.x, info->height - (a.y+a.h), a.w, a.h);
 
     int xpos, ypos;
     world_to_screen (V2(wa.x, wa.y), &xpos, &ypos);
     for (unsigned i=0; i<m_layers.size(); ++i) {
-// OPENGL        clip(gc, get_area());
         m_layers[i]->prepare_draw (wa);
         m_layers[i]->draw(wa, xpos, ypos);
         m_layers[i]->draw_onepass();
     }
-}
-
-void DisplayEngine::update_layer (DisplayLayer *l, WorldArea wa) 
-{
-    int x2 = wa.x+wa.w;
-    int y2 = wa.y+wa.h;
-    int y2m1 = y2 - 1;
-
-    Rect a = get_area();
-    // glEnable(GL_SCISSOR_TEST);
-    // glScissor(a.x, a.y, a.w, a.h);
-
-    int xpos, ypos0;
-    world_to_screen (V2(wa.x, wa.y), &xpos, &ypos0);
-
-    l->prepare_draw (wa);
-    for (int x=wa.x; x<x2; x++, xpos += m_tilew) {
-        int ypos = ypos0;
-        for (int y=wa.y; y<y2; y++, ypos += m_tileh) {
-            if (m_redrawp(x,y) == 1)
-                if (y<y2m1 && m_redrawp(x,y+1) == 1) {
-                    l->draw (WorldArea(x,y,1,2), xpos, ypos);
-                    y++;
-                    ypos += m_tileh;
-                } else
-                    l->draw(WorldArea(x,y,1,1), xpos, ypos);
-        }
-    }
-    l->draw_onepass();
-}
-
-void DisplayEngine::update_screen() 
-{
-    if (m_new_offset != m_offset) {
-        update_offset ();
-        m_new_offset = m_offset;
-    }
-
-    Rect area=get_area();
-// OPENGL    clip(gc, area);
-
-    WorldArea wa = screen_to_world (area);
-    for (unsigned i=0; i<m_layers.size(); ++i) {
-        update_layer (m_layers[i], wa);
-    }
-    // int x2 = wa.x+wa.w;
-    // int y2 = wa.y+wa.h;
-    // for (int x=wa.x; x<x2; x++)
-    //     for (int y=wa.y; y<y2; y++)
-    //         if (m_redrawp(x,y) >= 1) {
-    //             if ((m_redrawp(x,y) -= 1) == 0)
-    //                 screen->update_rect (world_to_screen (WorldArea (x, y, 1, 1)));
-    //         } 
+    glDisable(GL_SCISSOR_TEST);
 }
 
 
@@ -755,13 +641,13 @@ void DisplayEngine::update_screen()
 
 void ModelLayer::maybe_redraw_model(Model *m, bool immediately) 
 {
-    Rect videoarea;
-    if (m->has_changed(videoarea)) {
-        int delay = immediately ? 0 : enigma::IntegerRand (0, 2, false);
-        WorldArea wa;
-        get_engine()->video_to_world (videoarea, wa);
-        get_engine()->mark_redraw_area(wa, delay);
-    }
+    // Rect videoarea;
+    // if (m->has_changed(videoarea)) {
+    //     int delay = immediately ? 0 : enigma::IntegerRand (0, 2, false);
+    //     WorldArea wa;
+    //     get_engine()->video_to_world (videoarea, wa);
+    //     get_engine()->mark_redraw_area(wa, delay);
+    // }
 }
 
 void ModelLayer::activate (Model *m) 
@@ -830,7 +716,7 @@ void DL_Grid::new_world (int w, int h) {
 }
 
 void DL_Grid::mark_redraw (int x, int y) {
-    get_engine()->mark_redraw_area (WorldArea (x, y, m_redrawsize, m_redrawsize));
+    // get_engine()->mark_redraw_area (WorldArea (x, y, m_redrawsize, m_redrawsize));
 }
 
 void DL_Grid::set_model (int x, int y, Model *m) {
@@ -1095,7 +981,7 @@ void DL_Sprites::update_sprite_region (Sprite * s, bool is_add, bool is_redraw_o
         r.y += s->screenpos[1];
         DisplayEngine *e = get_engine();
         e->video_to_world (r, redrawr);
-        e->mark_redraw_area (redrawr);
+        // e->mark_redraw_area (redrawr);
         if (is_redraw_only)
             return;
         
@@ -1174,85 +1060,29 @@ void DL_Lines::draw_onepass()
     }
 }
 
-/* Mark the screen region occupied by a rubber band for redraw.
-   Problem is: what region is that exactly?  What pixels on the screen
-   will the line rasterizer touch?  Hard to tell, especially when
-   anti-aliasing is used.
-
-   This function constructs a list of rectangles that completely
-   enclose the line by subdividing the line into n segments and
-   constructing the bounding box for each of these segments.  To
-   account for the (effective) finite width of the line, these boxes
-   need to be enlarged by a small amount to make them overlap a bit.
-
-   The number n of subdivision depends on the length of the line.  n=1
-   would of course do, but we want to redraw as little of the screen
-   as possible.  `n' is therefore chosen in such a way that the line
-   is covered with boxes of size not larger than `maxboxsize'.
-*/
-void DL_Lines::mark_redraw_line (const Line &r) {
-    const double maxboxsize = 0.5;
-
-    double w0 = r.start[0]-r.end[0];
-    double h0 = r.start[1]-r.end[1];
-    int n = int (max(abs(w0),abs(h0)) / maxboxsize)+1;
-
-    double w = w0/n;
-    double h = h0/n;
-
-    double overlap = 0.1;
-
-    double x = r.end[0];
-    double y = r.end[1];
-
-    double xoverlap = w<0 ? -overlap : overlap;
-    double yoverlap = h<0 ? -overlap : overlap;
-
-    for (int i=0; i<n; ++i) {
-        dRect dr (x-xoverlap, y-yoverlap, w+2*xoverlap, h+2*yoverlap);
-        WorldArea wa = round_grid (dr, 1, 1);
-
-        if (wa.w < 0) {
-            wa.x += wa.w;
-            wa.w = -wa.w;
-        }
-        if (wa.h < 0) {
-            wa.y += wa.h;
-            wa.h = -wa.h;
-        }
-        wa.w++;
-        wa.h++;
-
-        get_engine()->mark_redraw_area (wa);
-
-        x += w;
-        y += h;
-    }
-}
-
 RubberHandle DL_Lines::add_line (const V2 &p1, const V2 &p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick)
 {
     m_rubbers[m_id] = Line(p1, p2, rc, gc, bc, isThick);
-    mark_redraw_line (m_rubbers[m_id]);
+    // mark_redraw_line (m_rubbers[m_id]);
     return RubberHandle(this, m_id++);
 }
 
 void DL_Lines::set_startpoint (unsigned id, const V2 &p1)
 {
-    mark_redraw_line (m_rubbers[id]);
+    // mark_redraw_line (m_rubbers[id]);
     m_rubbers[id].start = p1;
-    mark_redraw_line (m_rubbers[id]);
+    // mark_redraw_line (m_rubbers[id]);
 }
 
 void DL_Lines::set_endpoint (unsigned id, const V2 &p2)
 {
-    mark_redraw_line (m_rubbers[id]);
+    // mark_redraw_line (m_rubbers[id]);
     m_rubbers[id].end = p2;
-    mark_redraw_line (m_rubbers[id]);
+    // mark_redraw_line (m_rubbers[id]);
 }
 
 void DL_Lines::kill_line (unsigned id) {
-    mark_redraw_line (m_rubbers[id]);
+    // mark_redraw_line (m_rubbers[id]);
     LineMap::iterator i=m_rubbers.find(id);
     if (i != m_rubbers.end())
         m_rubbers.erase(i);
@@ -1759,8 +1589,6 @@ void Follower_Screen::tick(double, const ecl::V2 &point) {
     DisplayEngine *engine = get_engine();
     V2 oldoff = engine->get_offset();
     Follower::center(point);
-    if (oldoff != engine->get_offset())
-        engine->mark_redraw_screen();
 }
 
 
@@ -1846,12 +1674,12 @@ void Follower_Scrolling::tick(double dtime, const ecl::V2 &point)
 
         resttime -= dtime;
         if (resttime <= 0) {
-            engine->move_offset (destpos);
+            engine->set_offset (destpos);
             currently_scrolling = false;
         } else {
             dir = normalize(destpos - curpos);
             curpos += dir * scrollspeed*dtime;
-            engine->move_offset (curpos);
+            engine->set_offset (curpos);
         }
     }
 }
@@ -1884,7 +1712,7 @@ ecl::V2 Follower_Smooth::calc_offset (const ecl::V2 &point)
 void Follower_Smooth::tick (double /*time*/, const ecl::V2 &point)
 {
     DisplayEngine *engine   = get_engine();
-    engine->move_offset (calc_offset (point));
+    engine->set_offset (calc_offset (point));
 }
 
 void Follower_Smooth::center (const ecl::V2 &point)
@@ -1893,14 +1721,20 @@ void Follower_Smooth::center (const ecl::V2 &point)
 }
 
 
+
 //----------------------------------------------------------------------
-// Editor / game display engine
+// Game Display Engine
 //----------------------------------------------------------------------
 
-CommonDisplay::CommonDisplay (const ScreenArea &a)
+GameDisplay::GameDisplay (const ScreenArea &gamearea, 
+                          const ScreenArea &inventoryarea_)
+: last_frame_time (0),
+  m_reference_point (),
+  m_follower (0),
+  inventoryarea (inventoryarea_)
 {
     m_engine = new DisplayEngine;
-    m_engine->set_screen_area (a);
+    m_engine->set_screen_area (gamearea);
 
     const video::VMInfo *vminfo = video::GetInfo();
     m_engine->set_tilesize (vminfo->tile_size, vminfo->tile_size);
@@ -1923,112 +1757,7 @@ CommonDisplay::CommonDisplay (const ScreenArea &a)
     m_engine->add_layer (stone_layer);
     m_engine->add_layer (line_layer);
     m_engine->add_layer (effects_layer);
-}
 
-CommonDisplay::~CommonDisplay()
-{
-    delete m_engine;
-}
-
-Model * CommonDisplay::set_model (const GridLoc &l, Model *m)
-{
-    int x = l.pos.x, y=l.pos.y;
-
-    switch (l.layer) {
-    case GRID_FLOOR: floor_layer->set_model (x, y, m); break;
-    case GRID_ITEMS: item_layer->set_model (x, y, m); break;
-    case GRID_STONES:
-        stone_layer->set_model (x, y, m);
-//        shadow_layer->set_model (x, y, m);
-//         shadow_layer->update (x, y);
-        break;
-    case GRID_COUNT: break;
-    }
-    return m;
-}
-
-Model *
-CommonDisplay::get_model (const GridLoc &l)
-{
-    int x = l.pos.x, y=l.pos.y;
-    switch (l.layer) {
-    case GRID_FLOOR: return floor_layer->get_model (x, y);
-    case GRID_ITEMS: return item_layer->get_model (x, y);
-    case GRID_STONES: return stone_layer->get_model (x, y);
-    case GRID_COUNT: return 0;
-    }
-    return 0;
-}
-
-Model *
-CommonDisplay::yield_model (const GridLoc &l)
-{
-    int x = l.pos.x, y=l.pos.y;
-    switch (l.layer) {
-    case GRID_FLOOR: return floor_layer->yield_model (x, y);
-    case GRID_ITEMS: return item_layer->yield_model (x, y);
-    case GRID_STONES: return stone_layer->yield_model (x, y);
-    case GRID_COUNT: return 0;
-    }
-    return 0;
-}
-
-
-RubberHandle
-CommonDisplay::add_line (V2 p1, V2 p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick)
-{
-    return line_layer->add_line (p1, p2, rc, gc, bc, isThick);
-}
-
-SpriteHandle
-CommonDisplay::add_effect (const V2& pos, Model *m, bool isDispensible)
-{
-    Sprite *spr = new Sprite (pos, SPRITE_EFFECT, m);
-    return SpriteHandle (effects_layer, effects_layer->add_sprite(spr, isDispensible));
-}
-
-SpriteHandle
-CommonDisplay::add_sprite (const V2 &pos, Model *m)
-{
-    Sprite *spr = new Sprite (pos, SPRITE_ACTOR, m);
-    return SpriteHandle (sprite_layer, sprite_layer->add_sprite(spr));
-}
-
-void CommonDisplay::new_world (int w, int h) {
-    get_engine()->new_world (w, h);
-}
-
-void CommonDisplay::redraw() {
-    get_engine()->update_screen();
-}
-
-void CommonDisplay::set_floor (int x, int y, Model *m) {
-    floor_layer->set_model (x, y, m);
-}
-
-void CommonDisplay::set_item (int x, int y, Model *m) {
-    item_layer->set_model (x,y , m);
-}
-
-void CommonDisplay::set_stone (int x, int y, Model *m) {
-    stone_layer->set_model (x,y , m);
-}
-
-
-
-//----------------------------------------------------------------------
-// Game Display Engine
-//----------------------------------------------------------------------
-
-GameDisplay::GameDisplay (const ScreenArea &gamearea, 
-                          const ScreenArea &inventoryarea_)
-: CommonDisplay(gamearea),
-  last_frame_time (0),
-  redraw_everything(false),
-  m_reference_point (),
-  m_follower (0),
-  inventoryarea (inventoryarea_)
-{
     status_bar = new StatusBarImpl (inventoryarea);
 }
 
@@ -2036,10 +1765,11 @@ GameDisplay::~GameDisplay()
 {
     delete m_follower;
     delete status_bar;
+    delete m_engine;
 }
 
 void GameDisplay::tick(double dtime) {
-    get_engine()->tick (dtime);
+    m_engine->tick (dtime);
     status_bar->tick (dtime);
 
     if (m_follower)
@@ -2047,7 +1777,7 @@ void GameDisplay::tick(double dtime) {
 }
 
 void GameDisplay::new_world (int w, int h) {
-    CommonDisplay::new_world (w, h);
+    m_engine->new_world (w, h);
     status_bar->new_world();
     resize_game_area (NTILESH, NTILESV);
     updateFollowMode();
@@ -2071,45 +1801,45 @@ void GameDisplay::set_follow_mode (FollowMode m) {
             set_follower(0); 
             break;
         case FOLLOW_SCROLLING:
-       	    set_follower (new Follower_Scrolling(get_engine(), false)); 
+       	    set_follower (new Follower_Scrolling(m_engine, false)); 
             break;
         case FOLLOW_SCREEN:
-    	    set_follower (new Follower_Screen(get_engine())); 
+    	    set_follower (new Follower_Screen(m_engine)); 
             break;
         case FOLLOW_SCREENSCROLLING:
-    	    set_follower (new Follower_Scrolling(get_engine(), true, 0.5, 0.5)); 
+    	    set_follower (new Follower_Scrolling(m_engine, true, 0.5, 0.5)); 
             break;
         case FOLLOW_SMOOTH:
-            set_follower (new Follower_Smooth(get_engine()));
+            set_follower (new Follower_Smooth(m_engine));
     };
-    get_engine()->mark_redraw_screen();
+    // get_engine()->mark_redraw_screen();
 }
 
 void GameDisplay::updateFollowMode () {
     if (!server::FollowGrid)
-        set_follower(new Follower_Smooth(get_engine()));
+        set_follower(new Follower_Smooth(m_engine));
     else if (server::FollowMethod == FOLLOW_NONE) 
         set_follower(NULL); 
     else if (server::FollowMethod == FOLLOW_FLIP) {
-	    if (server::FollowThreshold.getType() == Value::DOUBLE) 
-            set_follower (new Follower_Screen(get_engine(), (double)server::FollowThreshold, 
-                    (double)server::FollowThreshold)); 
+        if (server::FollowThreshold.getType() == Value::DOUBLE) 
+            set_follower (new Follower_Screen(m_engine, (double)server::FollowThreshold, 
+                            (double)server::FollowThreshold)); 
         else
-            set_follower (new Follower_Screen(get_engine(), ecl::V2(server::FollowThreshold)[0], 
-                    ecl::V2(server::FollowThreshold)[1])); 
+            set_follower (new Follower_Screen(m_engine, ecl::V2(server::FollowThreshold)[0], 
+                            ecl::V2(server::FollowThreshold)[1])); 
     }
     else if ((server::FollowThreshold.getType() == Value::DOUBLE) && ((double)server::FollowThreshold == 0.5) 
             && (server::FollowAction == Value(ecl::V2(9.5, 6))))
-   	    set_follower(new Follower_Scrolling(get_engine(), false)); 
+        set_follower(new Follower_Scrolling(m_engine, false)); 
     else {
-	    if (server::FollowThreshold.getType() == Value::DOUBLE) 
-            set_follower (new Follower_Scrolling(get_engine(), true, (double)server::FollowThreshold, 
-                    (double)server::FollowThreshold)); 
+        if (server::FollowThreshold.getType() == Value::DOUBLE) 
+            set_follower (new Follower_Scrolling(m_engine, true, (double)server::FollowThreshold, 
+                            (double)server::FollowThreshold)); 
         else
-            set_follower (new Follower_Scrolling(get_engine(), true, ecl::V2(server::FollowThreshold)[0], 
-                    ecl::V2(server::FollowThreshold)[1])); 
+            set_follower (new Follower_Scrolling(m_engine, true, ecl::V2(server::FollowThreshold)[0], 
+                            ecl::V2(server::FollowThreshold)[1])); 
     }
-    get_engine()->mark_redraw_screen();
+    // get_engine()->mark_redraw_screen();
 }
 
 void GameDisplay::set_follower (Follower *f) {
@@ -2128,7 +1858,7 @@ void GameDisplay::set_reference_point (const V2 &point) {
 }
 
 void GameDisplay::get_reference_point_coordinates(int *x, int *y) {
-    get_engine()->world_to_screen(m_reference_point, x, y);
+    m_engine->world_to_screen(m_reference_point, x, y);
 }
 
 void GameDisplay::set_scroll_boundary (double boundary) 
@@ -2139,16 +1869,11 @@ void GameDisplay::set_scroll_boundary (double boundary)
 
 /* ---------- Screen updates ---------- */
 
-void GameDisplay::redraw_all (Screen *scr) {
-    get_engine()->mark_redraw_screen();
-    redraw_everything = true;
-    redraw (scr);
-}
-
-void GameDisplay::redraw (ecl::Screen *screen) {
+void GameDisplay::draw_all () {
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_engine->draw_all();
+    status_bar->redraw(inventoryarea);
     if (SDL_GetTicks() - last_frame_time > 10) {
-        CommonDisplay::redraw();
-
         if (ShowFPS) {
             char fps[20];
             sprintf (fps,"fps: %d\n", int(1000.0/(SDL_GetTicks()-last_frame_time)));
@@ -2164,39 +1889,12 @@ void GameDisplay::redraw (ecl::Screen *screen) {
         }
         last_frame_time = SDL_GetTicks();
     }
-    if (status_bar->has_changed() || redraw_everything) {
-        status_bar->redraw(inventoryarea);
-    }
-    if (redraw_everything)
-        draw_borders();
-    SDL_GL_SwapBuffers();
-    redraw_everything = false;
-}
-
-void GameDisplay::draw_all () {
-    get_engine()->draw_all();
-    status_bar->redraw (inventoryarea);
-    draw_borders();
-}
-
-void GameDisplay::draw_borders () {
-    RectList rl;
-    rl.push_back(Rect(0, 0, video::GetInfo()->width, video::GetInfo()->height));
-    rl.sub (get_engine()->get_area());
-    rl.sub (inventoryarea);
-// OPENGL
-    // clip(gc);
-    // set_color (gc, 0, 0, 0);
-    // for (RectList::iterator i=rl.begin(); i!=rl.end(); ++i) {
-    //     box (gc, *i);
-    // }
 }
 
 void GameDisplay::resize_game_area (int w, int h) 
 {
-    DisplayEngine *e = get_engine();
-    int neww = w * e->get_tilew();
-    int newh = h * e->get_tileh();
+    int neww = w * m_engine->get_tilew();
+    int newh = h * m_engine->get_tileh();
 
     const video::VMInfo *vidinfo = video::GetInfo();
 
@@ -2208,9 +1906,87 @@ void GameDisplay::resize_game_area (int w, int h)
         return;
     }
     Rect r ((screenw-neww)/2, (screenh-newh)/2, neww, newh);
-    e->set_screen_area (r);
+    m_engine->set_screen_area (r);
     follow_center();
 }
+
+Model * GameDisplay::set_model (const GridLoc &l, Model *m)
+{
+    int x = l.pos.x, y=l.pos.y;
+
+    switch (l.layer) {
+    case GRID_FLOOR: floor_layer->set_model (x, y, m); break;
+    case GRID_ITEMS: item_layer->set_model (x, y, m); break;
+    case GRID_STONES:
+        stone_layer->set_model (x, y, m);
+//        shadow_layer->set_model (x, y, m);
+//         shadow_layer->update (x, y);
+        break;
+    case GRID_COUNT: break;
+    }
+    return m;
+}
+
+Model *
+GameDisplay::get_model (const GridLoc &l)
+{
+    int x = l.pos.x, y=l.pos.y;
+    switch (l.layer) {
+    case GRID_FLOOR: return floor_layer->get_model (x, y);
+    case GRID_ITEMS: return item_layer->get_model (x, y);
+    case GRID_STONES: return stone_layer->get_model (x, y);
+    case GRID_COUNT: return 0;
+    }
+    return 0;
+}
+
+Model *
+GameDisplay::yield_model (const GridLoc &l)
+{
+    int x = l.pos.x, y=l.pos.y;
+    switch (l.layer) {
+    case GRID_FLOOR: return floor_layer->yield_model (x, y);
+    case GRID_ITEMS: return item_layer->yield_model (x, y);
+    case GRID_STONES: return stone_layer->yield_model (x, y);
+    case GRID_COUNT: return 0;
+    }
+    return 0;
+}
+
+
+RubberHandle
+GameDisplay::add_line (V2 p1, V2 p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick)
+{
+    return line_layer->add_line (p1, p2, rc, gc, bc, isThick);
+}
+
+SpriteHandle
+GameDisplay::add_effect (const V2& pos, Model *m, bool isDispensible)
+{
+    Sprite *spr = new Sprite (pos, SPRITE_EFFECT, m);
+    return SpriteHandle (effects_layer, effects_layer->add_sprite(spr, isDispensible));
+}
+
+SpriteHandle
+GameDisplay::add_sprite (const V2 &pos, Model *m)
+{
+    Sprite *spr = new Sprite (pos, SPRITE_ACTOR, m);
+    return SpriteHandle (sprite_layer, sprite_layer->add_sprite(spr));
+}
+
+void GameDisplay::set_floor (int x, int y, Model *m) {
+    floor_layer->set_model (x, y, m);
+}
+
+void GameDisplay::set_item (int x, int y, Model *m) {
+    item_layer->set_model (x,y , m);
+}
+
+void GameDisplay::set_stone (int x, int y, Model *m) {
+    stone_layer->set_model (x,y , m);
+}
+
+
 
 
 
@@ -2308,19 +2084,12 @@ void display::DrawAll () {
     gamedpy->draw_all();
 }
 
-void display::RedrawAll(Screen *screen) {
-    gamedpy->redraw_all(screen);
-}
-
-void display::Redraw (Screen *screen) {
-    gamedpy->redraw (screen);
-}
-
 void display::ResizeGameArea (int w, int h) {
     gamedpy->resize_game_area (w, h);
 }
-const Rect& display::GetGameArea () {
-    return gamedpy->get_engine()->get_area();
+
+Rect display::GetGameArea () {
+    return gamedpy->get_area();
 }
 
 RubberHandle

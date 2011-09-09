@@ -47,7 +47,6 @@ namespace display
 
         /* ---------- Scrolling / page flipping ---------- */
         void set_offset (const ecl::V2 &off);
-        void move_offset (const ecl::V2 &off);
         ecl::V2 get_offset () const { return m_offset; }
 
         /* ---------- Game-related stuff ---------- */
@@ -70,19 +69,10 @@ namespace display
 
         /* ---------- Screen upates ---------- */
 
-        void mark_redraw_screen();
-        void mark_redraw_area (const WorldArea &wa, int delay=0);
-
-        void redraw_screen_area (const ScreenArea &a);
-        void redraw_world_area (const WorldArea &a);
-
-        void update_screen();
         void draw_all();
         void update_offset();
 
     private:
-        void update_layer (DisplayLayer *l, WorldArea wa);
-
         /* ---------- Variables ---------- */
 
         std::vector<DisplayLayer *> m_layers;
@@ -93,14 +83,11 @@ namespace display
         ecl::V2 m_new_offset;    // New offset in world units
         int    m_screenoffset[2]; // Offset in screen units
 
-
         // Screen area occupied by level display
         ecl::Rect m_area;
 
         // Width and height of the world in tiles
         int m_width, m_height;
-
-        ecl::Array2<char> m_redrawp;
     };
 
 
@@ -121,12 +108,6 @@ namespace display
         virtual void draw_onepass() {}
         virtual void tick (double /*dtime*/) {}
         virtual void new_world (int /*w*/, int /*h*/) {}
-
-        // Functions.
-        void mark_redraw_area (const ecl::Rect &r)
-        {
-            get_engine()->mark_redraw_area(r);
-        }
     private:
         DisplayEngine *m_engine;
     };
@@ -333,50 +314,6 @@ namespace display
     };
 
 
-/* -------------------- CommonDisplay -------------------- */
-
-    /*! Parts of the display engine that are common to the game and
-      the editor. */
-    class CommonDisplay {
-    public:
-        CommonDisplay (const ScreenArea &a = ScreenArea (0, 0, 10, 10));
-        ~CommonDisplay();
-
-        Model *set_model (const GridLoc &l, Model *m);
-        Model *get_model (const GridLoc &l);
-        Model *yield_model (const GridLoc &l);
-
-        void set_floor (int x, int y, Model *m);
-        void set_item (int x, int y, Model *m);
-        void set_stone (int x, int y, Model *m);
-
-        DisplayEngine *get_engine() const { return m_engine; }
-
-        SpriteHandle add_effect (const V2& pos, Model *m, bool isDispensible = false);
-        SpriteHandle add_sprite (const V2 &pos, Model *m);
-
-        RubberHandle add_line (V2 p1, V2 p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick);
-
-        void new_world (int w, int h);
-        void redraw();
-
-    protected:
-        DL_Grid    *floor_layer;
-        DL_Grid    *item_layer;
-        DL_Grid    *stone_layer;
-
-        DL_Sprites *effects_layer;
-
-        DL_Lines   *line_layer;
-        DL_Sprites *sprite_layer;
-        DL_Shadows *shadow_layer;
-
-    private:
-
-        DisplayEngine *m_engine;
-    };
-
-
 /* -------------------- Scrolling -------------------- */
 
 
@@ -444,7 +381,7 @@ namespace display
 
 /* -------------------- GameDisplay -------------------- */
 
-    class GameDisplay : public CommonDisplay {
+    class GameDisplay {
     public:
         GameDisplay (const ScreenArea &gamearea, 
                      const ScreenArea &inventoryarea);
@@ -456,6 +393,7 @@ namespace display
         void new_world (int w, int h);
 
         void resize_game_area (int w, int h);
+        ecl::Rect get_area() { return m_engine->get_area(); }
 
         /* ---------- Scrolling ---------- */
         void set_follow_mode (FollowMode m);
@@ -469,28 +407,48 @@ namespace display
         void get_reference_point_coordinates(int *x, int *y);
 
         /* ---------- Screen updates ---------- */
-        void redraw (ecl::Screen *scr);
-        void redraw_all (ecl::Screen *scr);
-        void draw_all ();
+        void draw_all();
+
+
+        Model *set_model (const GridLoc &l, Model *m);
+        Model *get_model (const GridLoc &l);
+        Model *yield_model (const GridLoc &l);
+
+        void set_floor (int x, int y, Model *m);
+        void set_item (int x, int y, Model *m);
+        void set_stone (int x, int y, Model *m);
+
+        // DisplayEngine *get_engine() const { return m_engine; }
+
+        SpriteHandle add_effect (const V2& pos, Model *m, bool isDispensible = false);
+        SpriteHandle add_sprite (const V2 &pos, Model *m);
+
+        RubberHandle add_line (V2 p1, V2 p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick);
 
     private:
         void set_follower (Follower *f);
-        void draw_borders ();
 
         /* ---------- Variables ---------- */
         Uint32         last_frame_time;
-        bool           redraw_everything;
         StatusBarImpl *status_bar;
 
         V2          m_reference_point;
         Follower   *m_follower;
 
         ScreenArea inventoryarea;
-    };
 
-    class ModelHandle {
-    public:
-        ModelHandle ();
+        DL_Grid    *floor_layer;
+        DL_Grid    *item_layer;
+        DL_Grid    *stone_layer;
+
+        DL_Sprites *effects_layer;
+
+        DL_Lines   *line_layer;
+        DL_Sprites *sprite_layer;
+        DL_Shadows *shadow_layer;
+
+
+        DisplayEngine *m_engine;
     };
 }
 
