@@ -222,9 +222,10 @@ AC_CHECK_LIB(curl,curl_global_init,,[AC_MSG_ERROR([libcurl is required to compil
 dnl ----------------------------------------
 dnl Check for OpenGL
 dnl ---------------------------------------
-AX_HAVE_OPENGL()
-LIBS="$LIBS $GL_LIBS"
-CXXFLAGS="$CXXFLAGS $GL_CFLAGS"
+AX_CHECK_GL()
+AX_CHECK_GLU()
+LIBS="$LIBS $GL_LIBS $GLU_LIBS"
+CXXFLAGS="$CXXFLAGS $GL_CFLAGS $GLU_CFLAGS"
 
 dnl ----------------------------------------
 dnl Activate optimizations when profiling, to get rid of

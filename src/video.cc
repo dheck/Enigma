@@ -33,9 +33,6 @@
 #include "options.hh"
 #include "main.hh"
 #include "ecl.hh"
-#include "SDL.h"
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include <cassert>
 #include <cstdio>
 #include <fstream>
@@ -311,7 +308,11 @@ MouseCursor cursor;
 /** This function is installed as an event filter by MouseInit. It
 intercepts mouse motions, which are used to update the position of the mouse
 cursor (but passed on to the event queue) */
+#if SDL_VERSION_1_3
+int mouseEventFilter(void *, SDL_Event *e) 
+#else
 int mouseEventFilter(const SDL_Event *e)
+#endif
 {
     if (e->type == SDL_MOUSEMOTION) {
         cursor.x = e->motion.x; 
@@ -354,7 +355,11 @@ int video::Mousey() {
 
 void video::MouseInit() {
     SDL_GetMouseState(&cursor.x, &cursor.y);
+#if SDL_VERSION_1_3
+    SDL_SetEventFilter(mouseEventFilter, NULL);
+#else
     SDL_SetEventFilter(mouseEventFilter);
+#endif
 }
 
 void video::MouseShutdown() {
@@ -507,7 +512,15 @@ bool InitVideoMode(int w, int h, int bpp, bool fullscreen)
 
     SDL_WM_SetCaption(gCaption.c_str(), 0);
 
-    Uint32 flags = SDL_HWSURFACE | SDL_OPENGL;
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+
+    Uint32 flags = SDL_OPENGL;
     if (fullscreen)
         flags |= SDL_FULLSCREEN;
 
@@ -627,7 +640,11 @@ void video::Init()
 
 void video::Shutdown() 
 {
-    SDL_SetEventFilter(0);
+#if SDL_VERSION_1_3
+    SDL_SetEventFilter(NULL, NULL);
+#else
+    SDL_SetEventFilter(NULL);
+#endif
     SDL_WM_GrabInput(SDL_GRAB_OFF);
     delete gScreen;
     delete back_buffer;

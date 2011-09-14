@@ -23,8 +23,9 @@
 #include "ecl_geom.hh"
 
 #include "SDL.h"
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "SDL_opengl.h"
+
+#define SDL_VERSION_1_3 SDL_VERSION_ATLEAST(1, 3, 0)
 
 namespace ecl {
 
