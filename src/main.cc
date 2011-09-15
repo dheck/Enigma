@@ -466,8 +466,6 @@ void Application::init(int argc, char **argv)
                 size, systemAppDataPath.c_str());
         Log << message;
             
-        Screen *scr = video::GetScreen();
-
         Font *f = enigma::GetFont("menufont");
         // OPENGL
         // f->render (80, 240, message.c_str());

@@ -1,6 +1,6 @@
 /*
 ** Lua binding: enigma
-** Generated automatically by tolua++-1.0.93 on Fri Sep  9 11:20:54 2011.
+** Generated automatically by tolua++-1.0.93 on Thu Sep 15 17:16:21 2011.
 */
 
 #ifndef __cplusplus
@@ -24,7 +24,6 @@ using namespace lev;
 using namespace enigma;
 #include "video.hh"
 using namespace video;
-using ecl::Screen;
 #include "SoundEffectManager.hh"
 using namespace sound;
 
@@ -34,9 +33,8 @@ static void tolua_reg_types (lua_State* tolua_S)
  tolua_usertype(tolua_S,"Stone");
  tolua_usertype(tolua_S,"Font");
  tolua_usertype(tolua_S,"Object");
- tolua_usertype(tolua_S,"Floor");
  tolua_usertype(tolua_S,"Item");
- tolua_usertype(tolua_S,"Screen");
+ tolua_usertype(tolua_S,"Floor");
  tolua_usertype(tolua_S,"Surface");
 }
 
@@ -930,33 +928,6 @@ static int tolua_enigma_world_Resize00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
-/* function: GetScreen */
-#ifndef TOLUA_DISABLE_tolua_enigma_video_GetScreen00
-static int tolua_enigma_video_GetScreen00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
-     !tolua_isnoobj(tolua_S,1,&tolua_err)
- )
-  goto tolua_lerror;
- else
-#endif
- {
-  {
-   Screen* tolua_ret = (Screen*)  GetScreen();
-   tolua_pushusertype(tolua_S,(void*)tolua_ret,"Screen");
-  }
- }
- return 1;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'GetScreen'.",&tolua_err);
- return 0;
-#endif
-}
-#endif //#ifndef TOLUA_DISABLE
-
 /* function: HideMouse */
 #ifndef TOLUA_DISABLE_tolua_enigma_video_HideMouse00
 static int tolua_enigma_video_HideMouse00(lua_State* tolua_S)
@@ -1158,7 +1129,6 @@ TOLUA_API int tolua_enigma_open (lua_State* tolua_S)
   tolua_endmodule(tolua_S);
   tolua_module(tolua_S,"video",0);
   tolua_beginmodule(tolua_S,"video");
-   tolua_function(tolua_S,"GetScreen",tolua_enigma_video_GetScreen00);
    tolua_function(tolua_S,"HideMouse",tolua_enigma_video_HideMouse00);
    tolua_function(tolua_S,"ShowMouse",tolua_enigma_video_ShowMouse00);
   tolua_endmodule(tolua_S);

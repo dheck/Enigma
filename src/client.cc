@@ -493,8 +493,6 @@ void Client::show_menu(bool isESC) {
     
     server::Msg_Pause (true);
 
-    ecl::Screen *screen = video::GetScreen();
-
     video::TempInputGrab grab (false);
 
     video::ShowMouse();

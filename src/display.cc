@@ -506,7 +506,7 @@ DisplayEngine::DisplayEngine (int tilew, int tileh)
   m_area (),
   m_width(0), m_height(0)
 {
-    m_area = video::GetScreen()->size();
+    m_area = video::ScreenSize();
     m_screenoffset[0] = m_screenoffset[1] = 0;
 }
 

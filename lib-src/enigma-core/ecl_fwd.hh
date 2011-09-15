@@ -40,7 +40,7 @@ namespace ecl
     struct Texture;
     class Drawable;
     class GC;
-    class Screen;
+    // class Screen;
     class Surface;
 
     // geom.hh

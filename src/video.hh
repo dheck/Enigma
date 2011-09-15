@@ -149,7 +149,8 @@ namespace video
       mode. [currently always 16] */
     int GetColorDepth();
 
-    ecl::Screen *GetScreen();
+    // ecl::Screen *GetScreen();
+    ecl::Rect ScreenSize();
 
     /*! The backbuffer is surface that has the same size and pixel
       format as the screen.  This surface is used by ShowScreen() and

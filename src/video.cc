@@ -50,7 +50,6 @@ namespace {
 
 std::string gCaption;
 bool gInitialized = false;
-ecl::Screen *gScreen = NULL;
 SDL_Surface *gSdlScreen = NULL;
 
     Surface     *back_buffer  = 0;
@@ -390,8 +389,8 @@ bool video::SetInputGrab (bool onoff)
 {
     bool old_onoff = GetInputGrab (); 
     if (onoff) {
-        Screen *screen = GetScreen();
-        SDL_WarpMouse (screen->width()/2, screen->height()/2);
+        ecl::Rect screenSize = video::ScreenSize();
+        SDL_WarpMouse (screenSize.w/2, screenSize.h/2);
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             ;                   // swallow mouse motion event
@@ -533,8 +532,6 @@ bool InitVideoMode(int w, int h, int bpp, bool fullscreen)
         return false;
 
     // Video mode could be set
-    gScreen = new Screen(gSdlScreen);
-
     glClearColor(255, 0, 0, 0);
     glClearDepth(1.0f);
     glViewport(0, 0, w, h);
@@ -646,7 +643,6 @@ void video::Shutdown()
     SDL_SetEventFilter(NULL);
 #endif
     SDL_WM_GrabInput(SDL_GRAB_OFF);
-    delete gScreen;
     delete back_buffer;
     back_buffer = 0;
 }
@@ -657,8 +653,8 @@ void video::ChangeVideoMode()
     Init();
 }
 
-ecl::Screen * video::GetScreen() {
-    return gScreen;
+ecl::Rect video::ScreenSize() {
+    return Rect(0, 0, gSdlScreen->w, gSdlScreen->h);
 }
 
 VideoModes video::GetVideoMode() {
@@ -871,22 +867,21 @@ bool Effect_Push::finished() const
 TransitionEffect *
 video::MakeEffect (TransitionModes tm, ecl::Surface *newscr)
 {
-    int scrw = gScreen->width();
-    int scrh = gScreen->height();
+    ecl::Rect screenSize = video::ScreenSize();
 
     switch (tm) {
     case TM_PUSH_RANDOM: {
         int xo=0, yo=0;
         while (xo==0 && yo==0) {
-            xo = enigma::IntegerRand(-1, 1, false)*scrw;
-            yo = enigma::IntegerRand(-1, 1, false)*scrh;
+            xo = enigma::IntegerRand(-1, 1, false)*screenSize.w;
+            yo = enigma::IntegerRand(-1, 1, false)*screenSize.h;
         }
         return new Effect_Push(newscr, xo, yo);
     }
-    case TM_PUSH_N: return new Effect_Push (newscr, 0, -scrh);
-    case TM_PUSH_S: return new Effect_Push (newscr, 0, +scrh);
-    case TM_PUSH_E: return new Effect_Push (newscr, +scrw, 0);
-    case TM_PUSH_W: return new Effect_Push (newscr, -scrw, 0);
+    case TM_PUSH_N: return new Effect_Push (newscr, 0, -screenSize.h);
+    case TM_PUSH_S: return new Effect_Push (newscr, 0, +screenSize.h);
+    case TM_PUSH_E: return new Effect_Push (newscr, +screenSize.w, 0);
+    case TM_PUSH_W: return new Effect_Push (newscr, -screenSize.w, 0);
     default:
         return 0;
     };
@@ -894,8 +889,7 @@ video::MakeEffect (TransitionModes tm, ecl::Surface *newscr)
 
 
 void video::ShowScreen (TransitionModes tm, Surface *newscr) {
-    int scrw = gScreen->width();
-    int scrh = gScreen->height();
+    ecl::Rect screenSize = video::ScreenSize();
 
     switch (tm) {
     case TM_RANDOM:
@@ -904,10 +898,10 @@ void video::ShowScreen (TransitionModes tm, Surface *newscr) {
 	break;
     case TM_SQUARES:
 	break;
-    case TM_FLY_N: FX_Fly (newscr, 0, -scrh); break;
-    case TM_FLY_S: FX_Fly (newscr, 0, +scrh); break;
-    case TM_FLY_E: FX_Fly (newscr, +scrw, 0); break;
-    case TM_FLY_W: FX_Fly (newscr, -scrw, 0); break;
+    case TM_FLY_N: FX_Fly (newscr, 0, -screenSize.h); break;
+    case TM_FLY_S: FX_Fly (newscr, 0, +screenSize.h); break;
+    case TM_FLY_E: FX_Fly (newscr, +screenSize.w, 0); break;
+    case TM_FLY_W: FX_Fly (newscr, -screenSize.w, 0); break;
 
     default:
         break;

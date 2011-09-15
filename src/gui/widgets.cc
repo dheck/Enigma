@@ -113,7 +113,7 @@ void AreaManager::invalidate_area(const ecl::Rect &r) {
 
 void AreaManager::invalidate_all() {
     dirtyrects.clear();
-    dirtyrects.push_back(video::GetScreen()->size());
+    dirtyrects.push_back(video::ScreenSize());
 }
 
 void AreaManager::refresh() {

@@ -39,14 +39,26 @@ void ecl::CreateTexture(SDL_Surface *s, Texture *tex) {
     GLuint texid;
     glGenTextures(1, &texid);
     glBindTexture(GL_TEXTURE_2D, texid);
-
+        
     GLenum err = glGetError();
     if (err != 0)
         fprintf(stderr, "Could not create texture.\n");
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, 
-            GL_BGRA, GL_UNSIGNED_BYTE, s->pixels);
-
+        
+    if (s->format->BitsPerPixel == 32 &&
+            s->format->Bshift == 0 && s->format->Gshift == 8 &&
+            s->format->Rshift == 16 && s->format->Ashift == 24) 
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, 
+                GL_BGRA, GL_UNSIGNED_BYTE, s->pixels);
+    } else {
+        SDL_Surface *tmp = SDL_CreateRGBSurface(SDL_SWSURFACE,
+                s->w, s->h, 32, 0xff, 0xff00, 0xff0000, 0xff000000);
+        SDL_BlitSurface(s, NULL, tmp, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, 
+                GL_RGBA, GL_UNSIGNED_BYTE, tmp->pixels);
+        SDL_FreeSurface(tmp);
+    }
+        
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -415,32 +427,27 @@ Surface::make_surface (SDL_Surface *sdls)
 /* `Xlib.h' also defines a type named `Screen' so we have to specify
    the namespace explicitly and cannot simply use a using-declaration. */
 
-ecl::Screen::Screen (Surface *s)
-: m_surface(s), m_sdlsurface(s->get_surface())
-{
-}
+// ecl::Screen::Screen (Surface *s)
+// : m_surface(s), m_sdlsurface(s->get_surface())
+// {
+// }
 
-ecl::Screen::Screen (SDL_Surface *s)
-: m_surface (Surface::make_surface(s)), m_sdlsurface(s)
-{
-}
+// ecl::Screen::Screen (SDL_Surface *s)
+// : m_surface (Surface::make_surface(s)), m_sdlsurface(s)
+// {
+// }
 
-void ecl::Screen::set_caption(const char* str)
-{
-    SDL_WM_SetCaption(str, 0);
-}
+// Rect ecl::Screen::size() const {
+//     return Rect(0, 0, width(), height());
+// }
 
-Rect ecl::Screen::size() const {
-    return Rect(0, 0, width(), height());
-}
+// int ecl::Screen::width() const {
+//     return m_sdlsurface->w;
+// }
 
-int ecl::Screen::width() const {
-    return m_sdlsurface->w;
-}
-
-int ecl::Screen::height() const {
-    return m_sdlsurface->h;
-}
+// int ecl::Screen::height() const {
+//     return m_sdlsurface->h;
+// }
 
 
 /* -------------------- Functions -------------------- */
@@ -613,35 +620,13 @@ Surface * ecl::Grab (const Surface *s, Rect &r) {
 
 Surface* ecl::LoadImage (const char* filename)
 {
-    return LoadImage(IMG_Load(filename));
+    SDL_Surface *s = IMG_Load(filename);
+    return s ? Surface::make_surface(s) : NULL;
 }
 
 Surface* ecl::LoadImage(SDL_RWops *src, int freesrc) {
-    return LoadImage(IMG_Load_RW(src, freesrc));
-}
-
-Surface* ecl::LoadImage(SDL_Surface *tmp) {
-    if (tmp != NULL)
-    {
-        SDL_Surface* img;
-
-        if (tmp->flags & SDL_SRCALPHA) {
-            SDL_SetAlpha(tmp, SDL_RLEACCEL, 0);
-            img = SDL_DisplayFormatAlpha(tmp);
-        }
-        else if (tmp->flags & SDL_SRCCOLORKEY) {
-            SDL_SetColorKey(tmp, SDL_SRCCOLORKEY | SDL_RLEACCEL,
-                            tmp->format->colorkey);
-            img = SDL_DisplayFormat(tmp);
-        }
-        else
-            img = SDL_DisplayFormat(tmp);
-        if (img == 0)
-            return Surface::make_surface (tmp);
-        SDL_FreeSurface(tmp);
-        return Surface::make_surface (img);
-    }
-    return 0;
+    SDL_Surface *s = IMG_Load_RW(src, freesrc);
+    return s ? Surface::make_surface(s) : NULL;
 }
 
 Surface * ecl::MakeSurface(int w, int h, int bipp, const RGBA_Mask &mask)

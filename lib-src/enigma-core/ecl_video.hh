@@ -209,29 +209,27 @@ void drawBox(const Rect &r);
 
 /* -------------------- Screen -------------------- */
 
-    class Screen {
-    public:
-	Screen (Surface *s);
-        Screen (SDL_Surface *s);
+    // class Screen {
+    // public:
+    //     Screen (Surface *s);
+    //     Screen (SDL_Surface *s);
 
-	void set_caption(const char* str);
+    //     /* ---------- Accessors ---------- */
 
-        /* ---------- Accessors ---------- */
+    //     Surface *getSurface() const { return m_surface; }
 
-        Surface *getSurface() const { return m_surface; }
+    //     Rect size() const;
+    //     int width() const;
+    //     int height() const;
 
-        Rect size() const;
-        int width() const;
-        int height() const;
+    // private:
+    //     // Variables.
+    //     Surface     *m_surface;
+    //     SDL_Surface *m_sdlsurface;
 
-    private:
-        // Variables.
-        Surface     *m_surface;
-        SDL_Surface *m_sdlsurface;
-
-	Screen(const Screen&);
-	Screen& operator=(const Screen&);
-    };
+    //     Screen(const Screen&);
+    //     Screen& operator=(const Screen&);
+    // };
 
 
 /* -------------------- Graphics primitives -------------------- */
@@ -306,7 +304,7 @@ void drawBox(const Rect &r);
 
 /* -------------------- Functions -------------------- */
 
-    Screen* DisplayFormat(Screen* s);
+    // Screen* DisplayFormat(Screen* s);
 
 
     /*! Create a new surface. */
@@ -341,7 +339,6 @@ void drawBox(const Rect &r);
       format. */
     Surface* LoadImage(const char* filename);
     Surface* LoadImage(SDL_RWops *src, int freesrc);
-    Surface* LoadImage(SDL_Surface *tmpImage);
     
     /*! Overlay a rectangle `rect' in `s' with a transparent colored
       box. */

@@ -75,10 +75,6 @@ module ecl
         int height();
     };
 
-    class Screen {
-	void set_caption(const char* str);
-    };
-
     class Font {
         ~Font();
         int get_lineskip();

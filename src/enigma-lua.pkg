@@ -98,11 +98,9 @@ module world
 
 $#include "video.hh"
 $using namespace video;
-$using ecl::Screen;
 
 module video
 {
-    Screen *GetScreen();
     void HideMouse();
     void ShowMouse();
 }

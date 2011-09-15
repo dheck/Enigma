@@ -1,6 +1,6 @@
 /*
 ** Lua binding: px
-** Generated automatically by tolua++-1.0.93 on Fri Sep  9 11:20:54 2011.
+** Generated automatically by tolua++-1.0.93 on Thu Sep 15 17:16:21 2011.
 */
 
 #ifndef __cplusplus
@@ -70,9 +70,8 @@ static void tolua_reg_types (lua_State* tolua_S)
  tolua_usertype(tolua_S,"Rect");
  tolua_usertype(tolua_S,"GS");
  tolua_usertype(tolua_S,"Font");
- tolua_usertype(tolua_S,"Drawable");
  tolua_usertype(tolua_S,"Surface");
- tolua_usertype(tolua_S,"Screen");
+ tolua_usertype(tolua_S,"Drawable");
  tolua_usertype(tolua_S,"V2");
 }
 
@@ -1174,39 +1173,6 @@ static int tolua_px_ecl_Surface_height00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
-/* method: set_caption of class  Screen */
-#ifndef TOLUA_DISABLE_tolua_px_ecl_Screen_set_caption00
-static int tolua_px_ecl_Screen_set_caption00(lua_State* tolua_S)
-{
-#ifndef TOLUA_RELEASE
- tolua_Error tolua_err;
- if (
-     !tolua_isusertype(tolua_S,1,"Screen",0,&tolua_err) ||
-     !tolua_isstring(tolua_S,2,0,&tolua_err) ||
-     !tolua_isnoobj(tolua_S,3,&tolua_err)
- )
-  goto tolua_lerror;
- else
-#endif
- {
-  Screen* self = (Screen*)  tolua_tousertype(tolua_S,1,0);
-  const char* str = ((const char*)  tolua_tostring(tolua_S,2,0));
-#ifndef TOLUA_RELEASE
-  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'set_caption'",NULL);
-#endif
-  {
-   self->set_caption(str);
-  }
- }
- return 0;
-#ifndef TOLUA_RELEASE
- tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'set_caption'.",&tolua_err);
- return 0;
-#endif
-}
-#endif //#ifndef TOLUA_DISABLE
-
 /* method: delete of class  Font */
 #ifndef TOLUA_DISABLE_tolua_px_ecl_Font_delete00
 static int tolua_px_ecl_Font_delete00(lua_State* tolua_S)
@@ -1448,10 +1414,6 @@ TOLUA_API int tolua_px_open (lua_State* tolua_S)
     tolua_function(tolua_S,"delete",tolua_px_ecl_Surface_delete00);
     tolua_function(tolua_S,"width",tolua_px_ecl_Surface_width00);
     tolua_function(tolua_S,"height",tolua_px_ecl_Surface_height00);
-   tolua_endmodule(tolua_S);
-   tolua_cclass(tolua_S,"Screen","Screen","",NULL);
-   tolua_beginmodule(tolua_S,"Screen");
-    tolua_function(tolua_S,"set_caption",tolua_px_ecl_Screen_set_caption00);
    tolua_endmodule(tolua_S);
    #ifdef __cplusplus
    tolua_cclass(tolua_S,"Font","Font","",tolua_collect_Font);

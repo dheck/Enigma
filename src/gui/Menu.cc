@@ -227,7 +227,7 @@ namespace enigma { namespace gui {
                 a.w += max(0, r.x+r.w-a.x-a.w);
                 a.h += max(0, r.y+r.h-a.y-a.h);
             }
-            Rect c=ecl::center(video::GetScreen()->size(), a);
+            Rect c=ecl::center(video::ScreenSize(), a);
             int dx = c.x-a.x;
             int dy = c.y-a.y;
     
