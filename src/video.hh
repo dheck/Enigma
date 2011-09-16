@@ -152,10 +152,8 @@ namespace video
     // ecl::Screen *GetScreen();
     ecl::Rect ScreenSize();
 
-    /*! The backbuffer is surface that has the same size and pixel
-      format as the screen.  This surface is used by ShowScreen() and
-      FX_* functions below. */
-    ecl::Surface *BackBuffer();
+void EnableBackBuffer();
+void DisableBackBuffer();
     
     void               SetWindowCaption (const char *str);
     const std::string& GetWindowCaption();
@@ -198,7 +196,7 @@ namespace video
 
     enum FadeMode { FADEIN, FADEOUT };
     void FX_Fade (FadeMode mode);
-    void FX_Fly (ecl::Surface *newscr, int originx, int originy);
+    void FX_Fly (int originx, int originy);
 
     enum TransitionModes
     {
@@ -209,9 +207,7 @@ namespace video
 	TM_FLY_NW, TM_FLY_NE, TM_FLY_SE, TM_FLY_SW,
         TM_PUSH_RANDOM, TM_PUSH_N, TM_PUSH_S, TM_PUSH_W, TM_PUSH_E
     };
-    void ShowScreen (TransitionModes tm, ecl::Surface *newscr);
-
-    TransitionEffect *MakeEffect (TransitionModes tm, ecl::Surface *newscr);
+    TransitionEffect *MakeEffect (TransitionModes tm);
 }
 
 #endif

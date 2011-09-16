@@ -402,12 +402,39 @@ bool video::SetInputGrab (bool onoff)
     return old_onoff;
 }
 
+static GLuint backBufferFbo = 0;
+static Texture backBufferTex;
 
-Surface* video::BackBuffer() {
-    if (back_buffer==0) {
-        back_buffer = MakeSurface(gSdlScreen->w, gSdlScreen->h, gSdlScreen->format->BitsPerPixel);
-    }
-    return back_buffer;
+void video::EnableBackBuffer() {
+    if (backBufferFbo == 0) {
+        int width = gSdlScreen->w, height = gSdlScreen->h;
+        backBufferTex.width = width;
+        backBufferTex.height = height;
+
+        glGenFramebuffersEXT(1, &backBufferFbo);
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, backBufferFbo);
+
+        // attach texture to hold color information
+        glGenTextures(1, &backBufferTex.id);
+        glBindTexture(GL_TEXTURE_2D, backBufferTex.id);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, 
+                GL_COLOR_ATTACHMENT0_EXT,
+                GL_TEXTURE_2D, backBufferTex.id, 0);
+
+        printf("result: %d (should be %d)\n", glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT), GL_FRAMEBUFFER_COMPLETE_EXT);
+
+    } else
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, backBufferFbo);
+
+}
+
+void video::DisableBackBuffer() {
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 }
 
 const video::VMInfo *video::GetInfo (VideoModes vm)
@@ -532,7 +559,7 @@ bool InitVideoMode(int w, int h, int bpp, bool fullscreen)
         return false;
 
     // Video mode could be set
-    glClearColor(255, 0, 0, 0);
+    glClearColor(0, 0, 0, 0);
     glClearDepth(1.0f);
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
@@ -760,31 +787,21 @@ void video::FX_Fade(FadeMode mode)
 #endif
 }
 
-void video::FX_Fly (Surface *newscr, int originx, int originy) 
+void video::FX_Fly (int originx, int originy) 
 {
-
     double rest_time = 0.5;
+    double velx = -originx / rest_time, vely = -originy / rest_time;
+    double origx = originx, origy = originy;
 
-    double velx = -originx / rest_time;
-    double vely = -originy / rest_time;
-
-    double origx = originx;
-    double origy = originy;
-
-    while (rest_time > 0)
-    {
+    while (rest_time > 0) {
         Uint32 otime = SDL_GetTicks();
 
-#if 0 // OPENGL
         Rect r(static_cast<int>(origx),
-               static_cast<int>(origy),
-               scr->width(), scr->height());
-        Screen *scr = gScreen;
-        GC scrgc(scr->get_surface());
-        blit (scrgc, r.x, r.y, newscr);
+                static_cast<int>(origy),
+                ScreenSize().w, ScreenSize().h);
+        blit (backBufferTex, r.x, r.y);
 
         SDL_GL_SwapBuffers();
-#endif
 
         double dt = (SDL_GetTicks()-otime)/1000.0;
         if (dt > rest_time)
@@ -799,13 +816,13 @@ namespace
 {
     class Effect_Push : public TransitionEffect {
     public:
-        Effect_Push(ecl::Surface *newscr, int originx, int originy);
+        Effect_Push(int originx, int originy);
+        ~Effect_Push();
         void tick (double dtime);
         bool finished() const;
     private:
         double rest_time;
-        ecl::Surface *newscr;
-        std::auto_ptr<ecl::Surface > oldscr;
+        ecl::Texture oldScreen;
         int originx, originy;
         double velx, vely;
         double accx, accy;
@@ -814,10 +831,8 @@ namespace
     };
 }
 
-Effect_Push::Effect_Push(ecl::Surface *newscr_, int originx_, int originy_)
+Effect_Push::Effect_Push(int originx_, int originy_)
 : rest_time (0.7),
-  newscr (newscr_),
-  oldscr (NULL), // OPENGL Duplicate(gScreen->get_surface())),
   originx (originx_),
   originy (originy_),
   velx (-2 * originx / rest_time),
@@ -828,11 +843,37 @@ Effect_Push::Effect_Push(ecl::Surface *newscr_, int originx_, int originy_)
   y (originy),
   t (0)
 {
+    int width = gSdlScreen->w, height = gSdlScreen->h;
+    glGenTextures(1, &oldScreen.id);
+    oldScreen.width = width, oldScreen.height = height;
+    glBindTexture(GL_TEXTURE_2D, oldScreen.id);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, 
+            GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, width, height, 0);
+}
+
+Effect_Push::~Effect_Push() {
+    glDeleteTextures(1, &oldScreen.id);
+}
+
+static void blitFlipped(const Texture &tex, int x, int y) {
+    glEnable(GL_TEXTURE_2D);
+    glColor4f(1, 1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D, tex.id);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0,1); glVertex3f(x, y, 0);
+    glTexCoord2f(1,1); glVertex3f(x + tex.width, y, 0);
+    glTexCoord2f(1,0); glVertex3f(x + tex.width, y + tex.height, 0);
+    glTexCoord2f(0,0); glVertex3f(x, y + tex.height, 0);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
 }
 
 void Effect_Push::tick (double dtime)
 {
-
     if (rest_time > 0) {
         if (dtime > rest_time)
             dtime = rest_time;
@@ -842,19 +883,13 @@ void Effect_Push::tick (double dtime)
         x = (accx*t + velx)*t + originx;
         y = (accy*t + vely)*t + originy;
 
-#if 0 // OPENGL
-        Screen *scr = gScreen;
-        GC scrgc(scr->get_surface());
-        blit (scrgc, (int)x-originx, (int)y, oldscr.get());
-        blit (scrgc, (int)x, (int)y-originy, oldscr.get());
-        blit (scrgc, (int)x-originx, (int)y-originy, oldscr.get());
-
-        blit (scrgc, (int)x, (int) y, newscr);
-#endif
-
+        blitFlipped (oldScreen, (int)x-originx, (int)y);
+        blitFlipped (oldScreen, (int)x, (int)y-originy);
+        blitFlipped (oldScreen, (int)x-originx, (int)y-originy);
+        blitFlipped (backBufferTex, (int)x, (int) y);
     }
     else {
-// OPENGL        blit(scrgc, 0,0, newscr);
+        blitFlipped(backBufferTex, 0, 0);
     }
     SDL_GL_SwapBuffers();
 }
@@ -865,7 +900,7 @@ bool Effect_Push::finished() const
 }
 
 TransitionEffect *
-video::MakeEffect (TransitionModes tm, ecl::Surface *newscr)
+video::MakeEffect (TransitionModes tm)
 {
     ecl::Rect screenSize = video::ScreenSize();
 
@@ -876,35 +911,15 @@ video::MakeEffect (TransitionModes tm, ecl::Surface *newscr)
             xo = enigma::IntegerRand(-1, 1, false)*screenSize.w;
             yo = enigma::IntegerRand(-1, 1, false)*screenSize.h;
         }
-        return new Effect_Push(newscr, xo, yo);
+        return new Effect_Push(xo, yo);
     }
-    case TM_PUSH_N: return new Effect_Push (newscr, 0, -screenSize.h);
-    case TM_PUSH_S: return new Effect_Push (newscr, 0, +screenSize.h);
-    case TM_PUSH_E: return new Effect_Push (newscr, +screenSize.w, 0);
-    case TM_PUSH_W: return new Effect_Push (newscr, -screenSize.w, 0);
+    case TM_PUSH_N: return new Effect_Push (0, -screenSize.h);
+    case TM_PUSH_S: return new Effect_Push (0, +screenSize.h);
+    case TM_PUSH_E: return new Effect_Push (+screenSize.w, 0);
+    case TM_PUSH_W: return new Effect_Push (-screenSize.w, 0);
     default:
         return 0;
     };
 }
 
-
-void video::ShowScreen (TransitionModes tm, Surface *newscr) {
-    ecl::Rect screenSize = video::ScreenSize();
-
-    switch (tm) {
-    case TM_RANDOM:
-	break;
-    case TM_FADEOUTIN:
-	break;
-    case TM_SQUARES:
-	break;
-    case TM_FLY_N: FX_Fly (newscr, 0, -screenSize.h); break;
-    case TM_FLY_S: FX_Fly (newscr, 0, +screenSize.h); break;
-    case TM_FLY_E: FX_Fly (newscr, +screenSize.w, 0); break;
-    case TM_FLY_W: FX_Fly (newscr, -screenSize.w, 0); break;
-
-    default:
-        break;
-    }
-}
 

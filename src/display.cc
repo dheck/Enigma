@@ -602,6 +602,7 @@ V2 DisplayEngine::to_world (const V2 &pos) {
 
 void DisplayEngine::draw_all() 
 {
+    glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_SCISSOR_TEST);
     Rect a = get_area();
     glScissor(a.x, video::ScreenSize().h - (a.y+a.h), a.w, a.h);

@@ -23,6 +23,7 @@
 #include "ecl_geom.hh"
 
 #include "SDL.h"
+#define GL_GLEXT_PROTOTYPES
 #include "SDL_opengl.h"
 
 #define SDL_VERSION_1_3 SDL_VERSION_ATLEAST(1, 3, 0)
@@ -206,32 +207,6 @@ void drawBox(const Rect &r);
 	~SurfaceLock() { s->unlock(); }
     };
 
-
-/* -------------------- Screen -------------------- */
-
-    // class Screen {
-    // public:
-    //     Screen (Surface *s);
-    //     Screen (SDL_Surface *s);
-
-    //     /* ---------- Accessors ---------- */
-
-    //     Surface *getSurface() const { return m_surface; }
-
-    //     Rect size() const;
-    //     int width() const;
-    //     int height() const;
-
-    // private:
-    //     // Variables.
-    //     Surface     *m_surface;
-    //     SDL_Surface *m_sdlsurface;
-
-    //     Screen(const Screen&);
-    //     Screen& operator=(const Screen&);
-    // };
-
-
 /* -------------------- Graphics primitives -------------------- */
 
     inline void set_color (GC &gc, int r, int g, int b, int a) {

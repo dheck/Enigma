@@ -807,11 +807,12 @@ void Client::level_loaded(bool isRestart)
     sound::StartLevelMusic();
 
     // start screen transition
-    GC gc(video::BackBuffer());
+    video::EnableBackBuffer();
     display::DrawAll();
+    video::DisableBackBuffer();
 
     m_effect.reset (video::MakeEffect ((isRestart ? video::TM_SQUARES :
-            video::TM_PUSH_RANDOM), video::BackBuffer()));
+            video::TM_PUSH_RANDOM)));
     m_cheater = false;
     m_state   = cls_preparing_game;
 }
