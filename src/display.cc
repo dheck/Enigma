@@ -1025,48 +1025,40 @@ void DL_Lines::draw_onepass()
 {
     DisplayEngine *engine = get_engine();
 
-// OPENGL    set_color (gc, 240, 140, 20, 255);
-//    set_flags (gc.flags, GS_ANTIALIAS);
-
     for (LineMap::iterator i=m_rubbers.begin(); i!= m_rubbers.end(); ++i)
     {
         int x1, y1, x2, y2;
         engine->world_to_screen (i->second.start, &x1, &y1);
         engine->world_to_screen (i->second.end, &x2, &y2);
 
-        // OPENGL set_color(gc, i->second.r, i->second.g, i->second.b, 255);
-        // line (gc, x1, y1, x2, y2);
-        // if (i->second.thick) {
-        //     line (gc, x1-1, y1, x2-1, y2);
-        //     line (gc, x1, y1-1, x2, y2-1);
-        //     line (gc, x1-1, y1-1, x2-1, y2-1);
-        // }
+        glColor3f(i->second.r/255.f, i->second.g/255.f, i->second.b/255.f);
+        glBegin(GL_LINES);
+        glVertex3f(x1, y1, 0);
+        glVertex3f(x2, y2, 0);
+        glEnd();
+
+        // OPENGL: better draw rectangle
+        // OPENGL: thick line if i->second.thick set
     }
 }
 
 RubberHandle DL_Lines::add_line (const V2 &p1, const V2 &p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick)
 {
     m_rubbers[m_id] = Line(p1, p2, rc, gc, bc, isThick);
-    // mark_redraw_line (m_rubbers[m_id]);
     return RubberHandle(this, m_id++);
 }
 
 void DL_Lines::set_startpoint (unsigned id, const V2 &p1)
 {
-    // mark_redraw_line (m_rubbers[id]);
     m_rubbers[id].start = p1;
-    // mark_redraw_line (m_rubbers[id]);
 }
 
 void DL_Lines::set_endpoint (unsigned id, const V2 &p2)
 {
-    // mark_redraw_line (m_rubbers[id]);
     m_rubbers[id].end = p2;
-    // mark_redraw_line (m_rubbers[id]);
 }
 
 void DL_Lines::kill_line (unsigned id) {
-    // mark_redraw_line (m_rubbers[id]);
     LineMap::iterator i=m_rubbers.find(id);
     if (i != m_rubbers.end())
         m_rubbers.erase(i);
