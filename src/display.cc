@@ -85,10 +85,9 @@ namespace
 //======================================================================
 
 StatusBarImpl::StatusBarImpl (const ScreenArea &area)
-: Window(area),
+: m_area(area),
   m_itemarea (),
   m_models(),
-  m_changedp(false),
   m_textview (*enigma::GetFont("statusbarfont")),
   m_leveltime (0),
   m_showtime_p (true),
@@ -111,18 +110,11 @@ StatusBarImpl::~StatusBarImpl() {
 }
 
 void StatusBarImpl::set_time (double time) {
-    double oldtime=m_leveltime;
     m_leveltime = time;
-    if (m_showtime_p && floor(m_leveltime)-floor(oldtime) >= 1)
-        m_changedp = true;      // update clock
 }
 
-void StatusBarImpl::hide_text() 
-{ 
-    if (m_text_active) {
-        m_text_active = false;
-        m_changedp = true;
-    }
+void StatusBarImpl::hide_text() { 
+    m_text_active = false;
 }
 
 void StatusBarImpl::set_speed (double /*speed*/)
@@ -133,37 +125,27 @@ void StatusBarImpl::set_travelled_distance (double /*distance*/)
 {
 }
 
-void StatusBarImpl::set_counter (int new_counter) 
-{
-    if (m_showcounter_p && new_counter != m_counter) {
-        m_changedp = true;
+void StatusBarImpl::set_counter (int new_counter) {
         m_counter = new_counter;
-    }
 }
 
-void StatusBarImpl::show_move_counter (bool active) 
-{
-    if (active != m_showcounter_p) {
+void StatusBarImpl::show_move_counter (bool active) {
         m_showcounter_p = active;
-        m_changedp      = true;
-    }
 }
 void StatusBarImpl::setCMode(bool flag) {
     cMode = flag;
-    m_changedp = true;
 }
 
 void StatusBarImpl::setBasicModes(std::string flags) {
     basicModes = flags;
-    m_changedp = true;
 }
 
-void StatusBarImpl::redraw (const ScreenArea &r) {
+void StatusBarImpl::draw() {
     const video::VMInfo *vminfo = video::GetInfo();
     ScreenArea a = get_area();
-// OPENGL    clip(gc, intersect(a, r));
 
-    blit(enigma::GetTexture(player == enigma::YIN ? "inventory_yin" : "inventory_yang", ".png"), 
+    blit(enigma::GetTexture(player == enigma::YIN 
+                    ? "inventory_yin" : "inventory_yang", ".png"), 
             a.x, a.y);
     
     // draw player indicator
@@ -172,7 +154,6 @@ void StatusBarImpl::redraw (const ScreenArea &r) {
     int yoff =  4*ts/8 + vminfo->sb_coffsety;
     blit(enigma::GetTexture("player_switch_anim", ".png"), 
             a.x + xoff, a.y + yoff, Rect (0, playerImage * ts, ts, ts));
-
 
 //     set_color (gc, 255, 0, 0);
 //     frame (gc, vminfo->sb_timearea);
@@ -316,7 +297,7 @@ void StatusBarImpl::redraw (const ScreenArea &r) {
     }
 
     if (m_text_active) {
-        m_textview.draw(r);
+        m_textview.draw();
     } else {
         client::Msg_FinishedText();
         int itemsize = static_cast<int>(vminfo->tile_size * 1.125);
@@ -327,7 +308,6 @@ void StatusBarImpl::redraw (const ScreenArea &r) {
             x += itemsize;
         }
     }
-    m_changedp = false;
 }
 
 
@@ -343,7 +323,6 @@ void StatusBarImpl::set_inventory(enigma::Player activePlayer, const std::vector
     for (size_t i=0; i<modelnames.size(); ++i) {
         m_models.push_back(MakeModel(modelnames[i]));
     }
-    m_changedp = true;
 }
 
 void StatusBarImpl::show_text (const std::string &str, bool scrolling, double duration) 
@@ -351,7 +330,6 @@ void StatusBarImpl::show_text (const std::string &str, bool scrolling, double du
     m_textview.set_text (str, scrolling, duration);
     m_interruptible = false;
     m_text_active = true;
-    m_changedp = true;
 }
 
 void StatusBarImpl::tick(double dtime) {
@@ -360,16 +338,13 @@ void StatusBarImpl::tick(double dtime) {
     if ((player * 12 != playerImage) && (playerImageDuration > 0.1)) {
         playerImage = (++playerImage) % 24;
         playerImageDuration = 0;
-        m_changedp = true;
     }
 
     // Update text display
     if (m_text_active) {
         m_textview.tick (dtime);
-        m_changedp = m_changedp || m_textview.has_changed();
         if (m_textview.has_finished()) {
             m_text_active = false;
-            m_changedp = true;
         }
     }
 }
@@ -379,7 +354,6 @@ void StatusBarImpl::new_world() {
     m_models.clear();
     m_leveltime   = 0;
     m_text_active = false;
-    m_changedp    = true;
     player = enigma::YIN;
     playerImage = 0;
     playerImageDuration = 0;
@@ -390,11 +364,11 @@ void StatusBarImpl::new_world() {
 TextDisplay::TextDisplay (Font &f)
 : area(), 
   text(), 
-  changedp(false), finishedp(true),
+  finishedp(true),
   pingpong (false),
   showscroll(false),
   xoff(0), scrollspeed(DEFAULT_TextSpeed * FACTOR_TextSpeed),
-  textsurface(0), font(f)
+  font(f)
 {
     const video::VMInfo *vminfo = video::GetInfo();
     area = vminfo->sb_textarea;
@@ -406,10 +380,18 @@ TextDisplay::TextDisplay (Font &f)
     //   yet: This would crash.
 }
 
+TextDisplay::~TextDisplay() {
+    glDeleteTextures(1, &textTexture.id);
+}
+
+
 void TextDisplay::set_text (const string &t, bool scrolling, double duration) 
 {
     text = t;
-    textsurface.reset(font.render(text.c_str()));
+    Surface *surface = font.render(text.c_str());
+    glDeleteTextures(1, &textTexture.id);
+    ecl::CreateTexture(surface->get_surface(), &textTexture);
+    delete surface;
     pingpong = false;
 
     time = 0;
@@ -422,12 +404,12 @@ void TextDisplay::set_text (const string &t, bool scrolling, double duration)
             // Showscroll mode: first show string then scoll it out
             showscroll = true;
             scrollspeed = 0;
-            if (area.w < textsurface->width()) {
+            if (area.w < textTexture.width) {
                 // start left adjusted for long strings
                 xoff = 0;
             } else {
                 // start centered for short strings
-                xoff = -(area.w - textsurface->width())/2;
+                xoff = -(area.w - textTexture.width)/2;
             }
         }
     }
@@ -438,19 +420,18 @@ void TextDisplay::set_text (const string &t, bool scrolling, double duration)
         maxtime = 1e20;       // "infinite" for all practical purposes
 
     if (!scrolling) {// centered text string
-        if (area.w < textsurface->width()) {
+        if (area.w < textTexture.width) {
             pingpong = true;
-            scrollspeed = (textsurface->width() - area.w) / duration;
+            scrollspeed = (textTexture.width - area.w) / duration;
             xoff = 0;
         }
         else {
-            xoff = -(area.w - textsurface->width())/2;
+            xoff = -(area.w - textTexture.width)/2;
             scrollspeed = 0;
         }
     }
 
     finishedp = false;
-    changedp = true;
 }
 
 void TextDisplay::tick (double dtime) 
@@ -463,35 +444,38 @@ void TextDisplay::tick (double dtime)
             maxtime = 1e20;       // "infinite" for all practical purposes
         } else {
             finishedp = true;
-            changedp = true;
         }
     }
     else {
         int oldxoff = round_nearest<int>(xoff);
         xoff += dtime * scrollspeed;
         int newxoff = round_nearest<int> (xoff);
-        changedp = newxoff != oldxoff;
         if (pingpong) {
-            if (scrollspeed > 0 && area.w + newxoff >= textsurface->width() ) {
+            if (scrollspeed > 0 && area.w + newxoff >= textTexture.width) {
                 scrollspeed = -scrollspeed;
             }
             else if (scrollspeed < 0 && newxoff <= 0) {
                 scrollspeed = -scrollspeed;
             }
         }
-        else if (xoff >= textsurface->width()) {
+        else if (xoff >= textTexture.width) {
             finishedp = true;
-            changedp = true;
         }
     }
 }
 
-void TextDisplay::draw (const ScreenArea &r) {
-// OPENGL    clip(gc, intersect(area, r));
+void TextDisplay::draw() {
     // glColor3i(0,0,0);
     // drawBox(area);
     // if (Surface *s = textsurface.get())
     //     blit(gc, area.x-round_nearest<int>(xoff), area.y, s);
+
+    glEnable(GL_SCISSOR_TEST);
+    Rect a = area;
+    glScissor(a.x, video::ScreenSize().h - (a.y+a.h), a.w, a.h);
+    blit(textTexture, area.x - xoff, area.y);
+    glDisable(GL_SCISSOR_TEST);
+
 }
 
 
@@ -1870,9 +1854,8 @@ void GameDisplay::set_scroll_boundary (double boundary)
 /* ---------- Screen updates ---------- */
 
 void GameDisplay::draw_all () {
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_engine->draw_all();
-    status_bar->redraw(inventoryarea);
+    status_bar->draw();
     if (SDL_GetTicks() - last_frame_time > 10) {
         if (ShowFPS) {
             char fps[20];
@@ -1898,7 +1881,7 @@ void GameDisplay::resize_game_area (int w, int h)
 
     const video::VMInfo *vidinfo = video::GetInfo();
 
-    int screenw = vidinfo->width;
+    int screenw = video::ScreenSize().w;
     int screenh = NTILESV * vidinfo->tile_size;
     if (neww > screenw || newh > screenh) {
         enigma::Log << "Illegal screen size ("<< neww << "," << newh
@@ -1986,10 +1969,6 @@ void GameDisplay::set_stone (int x, int y, Model *m) {
     stone_layer->set_model (x,y , m);
 }
 
-
-
-
-
 /* -------------------- Global functions -------------------- */
 
 void display::Init(bool show_fps) {

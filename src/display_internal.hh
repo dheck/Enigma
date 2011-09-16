@@ -16,50 +16,36 @@ namespace display
     typedef ecl::Rect          WorldArea;
     typedef std::list<Model*> ModelList;
 
-
-    class Window {
-    public:
-        Window() {}
-        Window (const ScreenArea &area) : m_area(area)
-        {}
-
-        const ScreenArea &get_area() const { return m_area; }
-    private:
-        ScreenArea m_area;
-    };
-
-
     class TextDisplay {
     public:
         TextDisplay(ecl::Font &f);
+        ~TextDisplay();
 
         void set_text(const std::string &t, bool scrolling, double duration = -1);
 
         void tick(double dtime);
-        bool has_changed() const { return changedp; }
         bool has_finished() const { return finishedp; }
 
-        void draw(const ecl::Rect &r);
+        void draw();
     private:
-        ecl::Rect                area;
+        ecl::Rect               area;
         std::string             text;
-        bool                    changedp, finishedp;
+        bool                    finishedp;
         bool                    pingpong;
         bool                    showscroll;
         double                  xoff;
         double                  scrollspeed; // pixels per second
-        std::auto_ptr<ecl::Surface>  textsurface;
+        ecl::Texture            textTexture;  
         ecl::Font               &font;
         double                  time, maxtime;
     };
 
-    class StatusBarImpl : public StatusBar, public Window {
+    class StatusBarImpl : public StatusBar {
     public:
         StatusBarImpl (const ScreenArea &area);
         ~StatusBarImpl();
 
-        bool has_changed() const { return m_changedp; }
-        void redraw (const ScreenArea &r);
+        void draw();
         void tick (double dtime);
         void new_world();
 
@@ -77,11 +63,13 @@ namespace display
         void set_travelled_distance (double distance);
         void set_counter (int new_counter);
 
+        const ScreenArea &get_area() const { return m_area; }
+
     private:
+        ScreenArea     m_area;
         ScreenArea     m_itemarea;
         std::vector<Model*> m_models;
         enigma::Player player;
-        bool           m_changedp;
         TextDisplay    m_textview;
 
         double m_leveltime;
@@ -101,8 +89,6 @@ namespace display
         int maxWidthDigit;
         bool widthInit;
     };
-
-
 }
 
 #endif
