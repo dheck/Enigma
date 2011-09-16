@@ -602,14 +602,11 @@ V2 DisplayEngine::to_world (const V2 &pos) {
 
 void DisplayEngine::draw_all() 
 {
-    WorldArea wa = screen_to_world (get_area());
-
-    const video::VMInfo *info = video::GetInfo();
-
     glEnable(GL_SCISSOR_TEST);
-    Rect a = get_area(); //world_to_screen (WorldArea (0,0, m_width, m_height));
-    glScissor(a.x, info->height - (a.y+a.h), a.w, a.h);
+    Rect a = get_area();
+    glScissor(a.x, video::ScreenSize().h - (a.y+a.h), a.w, a.h);
 
+    WorldArea wa = screen_to_world (a);
     int xpos, ypos;
     world_to_screen (V2(wa.x, wa.y), &xpos, &ypos);
     for (unsigned i=0; i<m_layers.size(); ++i) {
@@ -622,17 +619,6 @@ void DisplayEngine::draw_all()
 
 
 /* -------------------- ModelLayer -------------------- */
-
-void ModelLayer::maybe_redraw_model(Model *m, bool immediately) 
-{
-    // Rect videoarea;
-    // if (m->has_changed(videoarea)) {
-    //     int delay = immediately ? 0 : enigma::IntegerRand (0, 2, false);
-    //     WorldArea wa;
-    //     get_engine()->video_to_world (videoarea, wa);
-    //     get_engine()->mark_redraw_area(wa, delay);
-    // }
-}
 
 void ModelLayer::activate (Model *m) 
 {
@@ -670,22 +656,16 @@ void ModelLayer::tick (double dtime)
        tick.  This may happen for example when a model callback
        decides to replace the old model by another one.  */
     for (ModelList::iterator i=am.begin(); i!=am.end(); ++i) {
-        if (Model *m = *i) {
+        if (Model *m = *i)
             m->tick(dtime);
-
-            // We have to check (*i) again because the list of active
-            // models can change during a tick!
-            if ((m = *i))
-                maybe_redraw_model (m);
-        }
     }
 }
 
 
 /* -------------------- GridLayer -------------------- */
 
-DL_Grid::DL_Grid(int redrawsize)
-: m_models (0, 0), m_redrawsize (redrawsize)
+DL_Grid::DL_Grid()
+: m_models (0, 0)
 {
 }
 
@@ -697,10 +677,6 @@ void DL_Grid::new_world (int w, int h) {
     ModelLayer::new_world (w, h);
     delete_sequence (m_models.begin(), m_models.end());
     m_models.resize (w, h, 0);
-}
-
-void DL_Grid::mark_redraw (int x, int y) {
-    // get_engine()->mark_redraw_area (WorldArea (x, y, m_redrawsize, m_redrawsize));
 }
 
 void DL_Grid::set_model (int x, int y, Model *m) {
@@ -717,7 +693,6 @@ void DL_Grid::set_model (int x, int y, Model *m) {
             oldm->remove(this);
             delete oldm;
         }
-        mark_redraw (x, y);
         m_models(x,y) = m;
         if (m) {
             int vx, vy;
@@ -736,7 +711,6 @@ Model *DL_Grid::yield_model (int x, int y) {
     if (m)
         m->remove (this);
     m_models(x,y) = 0;
-    mark_redraw (x,y);
     return m;
 }
 
@@ -802,21 +776,13 @@ void SpriteHandle::set_callback (ModelCallback *cb) const {
 
 void SpriteHandle::hide() const {
     if (layer) {
-        Sprite * s = layer->get_sprite(id);
-        if(s->visible) {
-            s->visible = false;
-            layer->redraw_sprite_region(id);
-        }
+        layer->get_sprite(id)->visible = false;
     }
 }
 
 void SpriteHandle::show() const {
     if (layer) {
-        Sprite * s = layer->get_sprite(id);
-        if(!s->visible) {
-            s->visible = true;
-            layer->redraw_sprite_region(id);
-        }
+        layer->get_sprite(id)->visible = true;
     }
 }
 
@@ -920,7 +886,6 @@ void DL_Sprites::kill_sprite (SpriteId id) {
 void DL_Sprites::draw(const WorldArea &a, int /*x*/, int /*y*/)
 {
     DisplayEngine *engine = get_engine();
-// OPENGL    clip (gc, intersect (engine->get_area(), engine->world_to_screen(a)));
     draw_sprites (false, a);
 }
 
@@ -952,12 +917,7 @@ void DL_Sprites::draw_onepass()
 //     draw_sprites (false, gc);
 }
 
-void DL_Sprites::redraw_sprite_region (SpriteId id) {
-    Sprite *s = sprites[id];
-    update_sprite_region(s, true, true);
-}
-
-void DL_Sprites::update_sprite_region (Sprite * s, bool is_add, bool is_redraw_only) {
+void DL_Sprites::update_sprite_region (Sprite * s, bool is_add) {
     if (s && s->model) {
         Rect r, redrawr;
         s->model->get_extension (r);
@@ -965,9 +925,6 @@ void DL_Sprites::update_sprite_region (Sprite * s, bool is_add, bool is_redraw_o
         r.y += s->screenpos[1];
         DisplayEngine *e = get_engine();
         e->video_to_world (r, redrawr);
-        // e->mark_redraw_area (redrawr);
-        if (is_redraw_only)
-            return;
         
         int x = redrawr.x;
         for (int i = 0; i < redrawr.w; i++, x++) {
@@ -1719,7 +1676,7 @@ GameDisplay::GameDisplay (const ScreenArea &gamearea,
     floor_layer   = new DL_Grid;
     item_layer    = new DL_Grid;
     sprite_layer  = new DL_Sprites;
-    stone_layer   = new DL_Grid (2);
+    stone_layer   = new DL_Grid;
     shadow_layer  = new DL_Shadows(stone_layer, sprite_layer);
     line_layer    = new DL_Lines;
     effects_layer = new DL_Sprites;
@@ -1846,7 +1803,10 @@ void GameDisplay::set_scroll_boundary (double boundary)
 /* ---------- Screen updates ---------- */
 
 void GameDisplay::draw_all () {
+
     m_engine->draw_all();
+
+
     status_bar->draw();
     if (SDL_GetTicks() - last_frame_time > 10) {
         if (ShowFPS) {

@@ -531,7 +531,6 @@ Anim2d::Anim2d(bool loop)
 Anim2d::Anim2d (AnimRep *r, ecl::Rect &ext_r) 
 : rep(r), curframe(0), frametime(0), 
   finishedp (false), 
-  changedp (false), 
   reversep (false),
   videox (0), videoy (0),
   callback(0), extension(ext_r)
@@ -546,7 +545,7 @@ Anim2d::~Anim2d() {
 }
 
 void Anim2d::restart () {
-    finishedp = false; frametime = 0; curframe = 0; changedp = true; 
+    finishedp = false; frametime = 0; curframe = 0;
 }
 
 void Anim2d::add_frame(Model *m, double duration) {
@@ -564,7 +563,6 @@ void Anim2d::draw(int x, int y)
     if (!finishedp) {
         AnimFrame *f =rep->frames[curframe];
         f->model->draw(x, y);
-        changedp = false;
     }
 }
         
@@ -586,16 +584,6 @@ void Anim2d::remove (ModelLayer *ml) {
     ml->deactivate (this);
 }
 
-bool Anim2d::has_changed (Rect &r) {
-    bool retval = changedp;
-    if (changedp) {
-        get_extension (r);
-        r.x += videox;
-        r.y += videoy;
-    }
-    return retval;
-}
-
 void Anim2d::move (int newx, int newy) {
     videox = newx;
     videoy = newy;
@@ -613,7 +601,6 @@ void Anim2d::tick (double dtime)
 
     if (frametime >= framedur) {
         frametime -= framedur;
-        changedp = true;
 
         if (reversep) {
             if (curframe >= 1)

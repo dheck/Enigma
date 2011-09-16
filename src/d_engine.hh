@@ -127,9 +127,7 @@ namespace display
         // Member functions
         void activate (Model *m);
         void deactivate (Model *m);
-        void maybe_redraw_model(Model *m, bool immediately=false);
 
-        virtual int redraw_size () const { return 2; }
     private:
 
         // Variables
@@ -144,7 +142,7 @@ namespace display
 
     class DL_Grid : public ModelLayer {
     public:
-        DL_Grid(int redrawsize = 1);
+        DL_Grid();
         ~DL_Grid();
 
         void set_model (int x, int y, Model *m);
@@ -152,20 +150,13 @@ namespace display
         Model *yield_model (int x, int y);
 
     private:
-        // DL_Grid interface.
-        void mark_redraw (int x, int y);
-
         // DisplayLayer interface.
         void new_world (int w, int h);
         void draw(const WorldArea &a, int x, int y);
 
-        // ModelLayer interface
-        virtual int redraw_size () const { return m_redrawsize; }
-
         // Variables.
         typedef ecl::Array2<Model*> ModelArray;
         ModelArray m_models;
-        int m_redrawsize;
     };
 
 
@@ -209,7 +200,6 @@ namespace display
         void move_sprite (SpriteId, const ecl::V2& newpos);
         void replace_sprite (SpriteId id, Model *m);
 
-        void redraw_sprite_region (SpriteId id);
         void draw_sprites (bool shades, const WorldArea &a);
 
         Model *get_model (SpriteId id) { return sprites[id]->model; }
@@ -223,7 +213,7 @@ namespace display
         SpriteList bottomSprites; // bottom sprite for each x
 
     private:
-        void update_sprite_region (Sprite * s, bool is_add, bool is_redraw_only = false);
+        void update_sprite_region (Sprite * s, bool is_add);
         
         // ModelLayer interface
         virtual void tick (double /*dtime*/);
@@ -305,9 +295,6 @@ namespace display
         void new_world (int w, int h);
 
     private:
-        // Private methods.
-        void mark_redraw_line (const Line &r);
-
         // Variables.
         unsigned  m_id;
         LineMap   m_rubbers;

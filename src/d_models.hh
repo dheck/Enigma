@@ -218,7 +218,6 @@ namespace display
         void remove (ModelLayer *ml);
 
         void tick(double dtime);
-        bool has_changed(ecl::Rect &changed_region);
         bool is_garbage() const { return finishedp; }
 
         void move (int newx, int newy);
@@ -232,7 +231,6 @@ namespace display
         unsigned curframe;      // Current frame number
         double  frametime;      // Elapsed time since frame was activated
         bool    finishedp;      // Animation has finished
-        bool    changedp;       // Model state has changed since last redraw
         bool    reversep;       // Play the animation in reverse direction
 
         int videox, videoy;     // Video coordinates of sprite
