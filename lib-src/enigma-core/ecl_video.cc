@@ -36,6 +36,7 @@ using namespace ecl;
 Texture ecl::dummyTexture = {0, 0, 0, false};
 
 void ecl::CreateTexture(SDL_Surface *s, Texture *tex) {
+    bool alpha = false;
     GLuint texid;
     glGenTextures(1, &texid);
     glBindTexture(GL_TEXTURE_2D, texid);
@@ -50,12 +51,22 @@ void ecl::CreateTexture(SDL_Surface *s, Texture *tex) {
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, 
                 GL_BGRA, GL_UNSIGNED_BYTE, s->pixels);
+        alpha = (s->flags & SDL_SRCALPHA) != 0;
     } else {
-        SDL_Surface *tmp = SDL_CreateRGBSurface(SDL_SWSURFACE,
-                s->w, s->h, 32, 0xff, 0xff00, 0xff0000, 0xff000000);
-        SDL_BlitSurface(s, NULL, tmp, NULL);
+        SDL_PixelFormat fmt;
+        fmt.palette = NULL;
+        fmt.BitsPerPixel = 32;
+        fmt.BytesPerPixel = 4;
+        fmt.Rloss = fmt.Gloss = fmt.Bloss = fmt.Aloss = 0;
+        fmt.Rmask = 0xff; fmt.Gmask = 0xff00; fmt.Bmask = 0xff0000; fmt.Amask = 0xff000000;
+        fmt.Rshift = 0; fmt.Gshift = 8; fmt.Bshift = 16; fmt.Ashift = 24;
+        fmt.colorkey = 0;
+        fmt.alpha = 0;
+
+        SDL_Surface *tmp = SDL_ConvertSurface(s, &fmt, SDL_SWSURFACE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, 
                 GL_RGBA, GL_UNSIGNED_BYTE, tmp->pixels);
+        alpha = (tmp->flags & SDL_SRCALPHA) != 0;
         SDL_FreeSurface(tmp);
     }
         
@@ -65,7 +76,7 @@ void ecl::CreateTexture(SDL_Surface *s, Texture *tex) {
     tex->id = texid;
     tex->width = s->w;
     tex->height = s->h;
-    tex->alpha = (s->flags & SDL_SRCALPHA) != 0;
+    tex->alpha = alpha;
 }
 
 void ecl::blit(const Texture &tex, int x, int y) {
