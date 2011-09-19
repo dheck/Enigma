@@ -50,9 +50,10 @@ namespace {
 
 std::string gCaption;
 bool gInitialized = false;
-SDL_Surface *gSdlScreen = NULL;
+SDL_Surface *gScreen = NULL;
 
-    Surface     *back_buffer  = 0;
+GLuint backBufferFbo = 0;
+Texture backBufferTex;
 
     /*! List of available video modes. */
     video::VMInfo video_modes[] = {
@@ -402,32 +403,8 @@ bool video::SetInputGrab (bool onoff)
     return old_onoff;
 }
 
-static GLuint backBufferFbo = 0;
-static Texture backBufferTex;
-
 void video::EnableBackBuffer() {
     if (backBufferFbo == 0) {
-        int width = gSdlScreen->w, height = gSdlScreen->h;
-        backBufferTex.width = width;
-        backBufferTex.height = height;
-
-        glGenFramebuffersEXT(1, &backBufferFbo);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, backBufferFbo);
-
-        // attach texture to hold color information
-        glGenTextures(1, &backBufferTex.id);
-        glBindTexture(GL_TEXTURE_2D, backBufferTex.id);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, 
-                GL_COLOR_ATTACHMENT0_EXT,
-                GL_TEXTURE_2D, backBufferTex.id, 0);
-
-        printf("result: %d (should be %d)\n", glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT), GL_FRAMEBUFFER_COMPLETE_EXT);
-
     } else
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, backBufferFbo);
 
@@ -554,11 +531,11 @@ bool InitVideoMode(int w, int h, int bpp, bool fullscreen)
     bpp = SDL_VideoModeOK (w, h, bpp, flags);
     if (bpp == 0)
         return false;
-    gSdlScreen = SDL_SetVideoMode(w, h, bpp, flags);
-    if (gSdlScreen == NULL)
+    gScreen = SDL_SetVideoMode(w, h, bpp, flags);
+    if (gScreen == NULL)
         return false;
 
-    // Video mode could be set
+    // ---------- Initialize OpenGL context ----------
     glClearColor(0, 0, 0, 0);
     glClearDepth(1.0f);
     glViewport(0, 0, w, h);
@@ -568,6 +545,28 @@ bool InitVideoMode(int w, int h, int bpp, bool fullscreen)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glEnable(GL_TEXTURE_2D);
+
+    // ---------- Initialize FBO for backbuffer ----------
+    backBufferTex.width = gScreen->w;
+    backBufferTex.height = gScreen->h;
+
+    glGenFramebuffersEXT(1, &backBufferFbo);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, backBufferFbo);
+
+    // attach texture to hold color information
+    glGenTextures(1, &backBufferTex.id);
+    glBindTexture(GL_TEXTURE_2D, backBufferTex.id);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gScreen->w, gScreen->h,
+            0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, 
+            GL_COLOR_ATTACHMENT0_EXT,
+            GL_TEXTURE_2D, backBufferTex.id, 0);
+    printf("result: %d (should be %d)\n", glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT), GL_FRAMEBUFFER_COMPLETE_EXT);
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
 
     gInitialized = true;
 
@@ -670,8 +669,8 @@ void video::Shutdown()
     SDL_SetEventFilter(NULL);
 #endif
     SDL_WM_GrabInput(SDL_GRAB_OFF);
-    delete back_buffer;
-    back_buffer = 0;
+
+    glDeleteFramebuffersEXT(1, &backBufferFbo);
 }
 
 void video::ChangeVideoMode()
@@ -681,7 +680,7 @@ void video::ChangeVideoMode()
 }
 
 ecl::Rect video::ScreenSize() {
-    return Rect(0, 0, gSdlScreen->w, gSdlScreen->h);
+    return Rect(0, 0, gScreen->w, gScreen->h);
 }
 
 VideoModes video::GetVideoMode() {
@@ -690,13 +689,11 @@ VideoModes video::GetVideoMode() {
 
 bool video::IsFullScreen()
 {
-    if (SDL_Surface *s = gSdlScreen)
-        return (s->flags & SDL_FULLSCREEN) != 0; 
-    return false;
+    return (gScreen->flags & SDL_FULLSCREEN) != 0; 
 }
 
 int video::GetColorDepth() {
-    return gSdlScreen->format->BitsPerPixel;
+    return gScreen->format->BitsPerPixel;
 }
 
 bool video::SetFullscreen(bool on) 
@@ -706,7 +703,7 @@ bool video::SetFullscreen(bool on)
             (!on && video_modes[current_video_mode].w_available)) {
 
         if (on != is_fullscreen)
-            SDL_WM_ToggleFullScreen(gSdlScreen);
+            SDL_WM_ToggleFullScreen(gScreen);
 
         is_fullscreen = IsFullScreen();
         if (on == is_fullscreen)
@@ -843,7 +840,7 @@ Effect_Push::Effect_Push(int originx_, int originy_)
   y (originy),
   t (0)
 {
-    int width = gSdlScreen->w, height = gSdlScreen->h;
+    int width = gScreen->w, height = gScreen->h;
     glGenTextures(1, &oldScreen.id);
     oldScreen.width = width, oldScreen.height = height;
     glBindTexture(GL_TEXTURE_2D, oldScreen.id);
