@@ -549,6 +549,7 @@ bool InitVideoMode(int w, int h, int bpp, bool fullscreen)
     // ---------- Initialize FBO for backbuffer ----------
     backBufferTex.width = gScreen->w;
     backBufferTex.height = gScreen->h;
+    backBufferTex.alpha = false;
 
     glGenFramebuffersEXT(1, &backBufferFbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, backBufferFbo);
@@ -843,6 +844,7 @@ Effect_Push::Effect_Push(int originx_, int originy_)
     int width = gScreen->w, height = gScreen->h;
     glGenTextures(1, &oldScreen.id);
     oldScreen.width = width, oldScreen.height = height;
+    oldScreen.alpha = false;
     glBindTexture(GL_TEXTURE_2D, oldScreen.id);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -858,6 +860,7 @@ Effect_Push::~Effect_Push() {
 
 static void blitFlipped(const Texture &tex, int x, int y) {
     glEnable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
     glColor4f(1, 1, 1, 1);
     glBindTexture(GL_TEXTURE_2D, tex.id);
     glBegin(GL_QUADS);
