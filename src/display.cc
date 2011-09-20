@@ -983,21 +983,30 @@ void DL_Lines::draw_onepass()
 {
     DisplayEngine *engine = get_engine();
 
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     for (LineMap::iterator i=m_rubbers.begin(); i!= m_rubbers.end(); ++i)
     {
         int x1, y1, x2, y2;
         engine->world_to_screen (i->second.start, &x1, &y1);
         engine->world_to_screen (i->second.end, &x2, &y2);
 
+        if (i->second.thick)
+            glLineWidth(0.05 * video::GetInfo()->tile_size);
+        else
+            glLineWidth(0.04 * video::GetInfo()->tile_size);
+
         glColor3f(i->second.r/255.f, i->second.g/255.f, i->second.b/255.f);
         glBegin(GL_LINES);
         glVertex3f(x1, y1, 0);
         glVertex3f(x2, y2, 0);
         glEnd();
-
-        // OPENGL: better draw rectangle
-        // OPENGL: thick line if i->second.thick set
     }
+
+    glDisable(GL_BLEND);
+    glDisable(GL_LINE_SMOOTH);
 }
 
 RubberHandle DL_Lines::add_line (const V2 &p1, const V2 &p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick)
