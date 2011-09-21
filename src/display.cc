@@ -875,25 +875,21 @@ void DL_Sprites::new_world (int w, int h) {
     delete_sequence (sprites.begin(), sprites.end());
     sprites.clear();
     Sprite *dummy = NULL;
-    bottomSprites.assign(w, dummy);
     numsprites = 0;
 }
 
 void DL_Sprites::move_sprite (SpriteId id, const ecl::V2& newpos) 
 {
-    Sprite *sprite = sprites[id];
-
     int newx, newy;
     get_engine()->world_to_video (newpos, &newx, &newy);
 
+    Sprite *sprite = sprites[id];
     if (newx != sprite->screenpos[0] || newy != sprite->screenpos[1]) {
-        update_sprite_region(sprite, false); // make sure old sprite is removed
         sprite->pos = newpos;
         sprite->screenpos[0] = newx;
         sprite->screenpos[1] = newy;
         if (Anim2d* anim = dynamic_cast<Anim2d*>(sprite->model))
             anim->move (newx, newy);
-        update_sprite_region(sprite, true); // draw new sprite
     }
 }
 
@@ -904,23 +900,22 @@ SpriteId DL_Sprites::add_sprite (Sprite *sprite, bool isDispensible)
         return MAGIC_SPRITEID;
     }
 
-    SpriteList &sl = sprites;
     SpriteId id = 0;
 
     // Find the first empty slot
-    SpriteList::iterator i = find(sl.begin(), sl.end(), static_cast<Sprite*>(0));
-    if (i == sl.end()) {
-        id = sl.size();
-        sl.push_back(sprite);
+    std::vector<Sprite*>::iterator i = find(sprites.begin(), sprites.end(), 
+            static_cast<Sprite*>(0));
+    if (i == sprites.end()) {
+        id = sprites.size();
+        sprites.push_back(sprite);
     }
     else {
-        id = distance(sl.begin(), i);
+        id = distance(sprites.begin(), i);
         *i = sprite;
     }
     get_engine()->world_to_video (sprite->pos, &sprite->screenpos[0], &sprite->screenpos[1]);
     if (Model *m = sprite->model)
         m->expose (this, sprite->screenpos[0], sprite->screenpos[1]);
-    update_sprite_region(sprite, true);
     numsprites += 1;
     return id;
 }
@@ -928,20 +923,17 @@ SpriteId DL_Sprites::add_sprite (Sprite *sprite, bool isDispensible)
 void DL_Sprites::replace_sprite (SpriteId id, Model *m) {
     Sprite *sprite = sprites[id];
     if (Model *old = sprite->model) {
-        update_sprite_region(sprite, false);
         old->remove (this);
         delete old;
     }
     sprite->model = m;
     if (m) {
         m->expose (this, sprite->screenpos[0], sprite->screenpos[1]);
-        update_sprite_region(sprite, true);
     }
 }
 
 void DL_Sprites::kill_sprite (SpriteId id) {
     if (Sprite *sprite = sprites[id]) {
-        update_sprite_region(sprite, false);
         if (Model *m = sprite->model) {
             m->remove (this);
         }
@@ -951,83 +943,22 @@ void DL_Sprites::kill_sprite (SpriteId id) {
     }
 }
 
-void DL_Sprites::draw(const WorldArea &a, int /*x*/, int /*y*/)
-{
-    DisplayEngine *engine = get_engine();
-    draw_sprites (false, a);
-}
-
-
-void DL_Sprites::draw_sprites(bool drawshadowp, const WorldArea &a) {
-    SpriteList &sl = sprites;
-
-//    for (unsigned i=0, sl_size=sl.size() ; i<sl_size; ++i) {
-//        Sprite *s = sl[i];
-    int gx = a.x;
-    for (int i = 0; i < a.w; i++, gx++) {
-        int m = gx%3;
-        Sprite *s = bottomSprites[gx];
-        for ( ; s != NULL; s = s->above[m]) {
-            if (s && s->model && s->visible) {
-                int sx, sy;
-                get_engine()->world_to_screen(s->pos, &sx, &sy);
-                if (drawshadowp)
-                    s->model->draw_shadow(sx, sy);
-                else
-                    s->model->draw(sx, sy);
-            }
-        }
-    }
-}
-
 void DL_Sprites::draw_onepass()
 {
-//     draw_sprites (false, gc);
-}
-
-void DL_Sprites::update_sprite_region (Sprite * s, bool is_add) {
-    if (s && s->model) {
-        Rect r, redrawr;
-        s->model->get_extension (r);
-        r.x += s->screenpos[0];
-        r.y += s->screenpos[1];
-        DisplayEngine *e = get_engine();
-        e->video_to_world (r, redrawr);
-        
-        int x = redrawr.x;
-        for (int i = 0; i < redrawr.w; i++, x++) {
-            if (x >= 0 && x < e->get_width()) {
-                int m = x%3;
-                if (is_add) {
-                    if (bottomSprites[x] != NULL)
-                        bottomSprites[x]->beneath[m] = s;
-                    s->above[m] = bottomSprites[x];
-                    s->beneath[m] = NULL;
-                    bottomSprites[x] = s;
-                } else {  // remove
-                    if (bottomSprites[x] == s) {
-                        bottomSprites[x] = s->above[m];
-                        if (s->above[m] != NULL)
-                            s->above[m]->beneath[m] = NULL;
-                    } else {
-                        if (s->above[m] != NULL) {
-                            s->above[m]->beneath[m] = s->beneath[m];
-                        }
-                        if (s->beneath[m] != NULL) {
-                            s->beneath[m]->above[m] = s->above[m];
-                        }
-                    }
-                }           
-            }
+    for (unsigned i=0; i<sprites.size(); ++i) {
+        Sprite *s = sprites[i];
+        if (s && s->model && s->visible) {
+            int sx, sy;
+            get_engine()->world_to_screen(s->pos, &sx, &sy);
+            s->model->draw(sx, sy);
         }
     }
 }
 
 void DL_Sprites::tick (double dtime)
 {
-    SpriteList &sl = sprites;
-    for (unsigned i=0; i<sl.size(); ++i) {
-        Sprite *s = sl[i];
+    for (unsigned i=0; i<sprites.size(); ++i) {
+        Sprite *s = sprites[i];
         if (!s || !s->model)
             continue;
 
@@ -1453,7 +1384,8 @@ void DL_Shadows::prepare_draw (const WorldArea &wa)
         Sprite *s = m_sprites->sprites[k];
         if (s && s->layer == SPRITE_ACTOR && s->model) {
             Rect r, redrawr;
-            s->model->get_extension (r);
+            // s->model->get_extension (r);
+            r = Rect(0,0, 2, 2);
             r.x += s->screenpos[0];
             r.y += s->screenpos[1];
             DisplayEngine *e = get_engine();
@@ -1822,7 +1754,6 @@ void GameDisplay::set_follow_mode (FollowMode m) {
         case FOLLOW_SMOOTH:
             set_follower (new Follower_Smooth(m_engine));
     };
-    // get_engine()->mark_redraw_screen();
 }
 
 void GameDisplay::updateFollowMode () {

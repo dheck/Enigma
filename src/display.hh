@@ -41,21 +41,8 @@ namespace display
         virtual void animcb() = 0;
     };
 
-    class Animation {
+    class Model {
     public:
-        virtual ~Animation() {}
-        virtual void set_callback (ModelCallback *) {}
-        virtual void reverse() {}
-        virtual void restart() {}
-
-	virtual bool is_garbage() const { return false; }
-        virtual void tick(double /*dtime*/) {}
-        virtual bool has_changed(ecl::Rect &/*changed_region*/) { return false; }
-    };
-
-    class Model : public Animation {
-    public:
-
         virtual void draw(int /*x*/, int /*y*/) {}
         virtual void draw_shadow(int /*x*/, int /*y*/) {}
 
@@ -65,7 +52,13 @@ namespace display
         virtual void remove (ModelLayer * /*ml*/) {}
 
         virtual Model *clone() = 0;
-        virtual void get_extension (ecl::Rect &r);
+
+        virtual void set_callback (ModelCallback *) {}
+        virtual void reverse() {}
+        virtual void restart() {}
+
+	virtual bool is_garbage() const { return false; }
+        virtual void tick(double /*dtime*/) {}
     };
 
 /* -------------------- Functions -------------------- */

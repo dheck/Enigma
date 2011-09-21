@@ -180,20 +180,14 @@ class Model;
         int          screenpos[2];
         SpriteLayer  layer;
         bool         visible;
-        Sprite *     above[3];
-        Sprite *     beneath[3];
 
         Sprite (const V2 & p, SpriteLayer l, Model *m)
         : model(m), pos(p), layer(l), visible(true)
         {
             screenpos[0] = screenpos[1] = 0;
-            above[0] = above[1] = above[2] = NULL;
-            beneath[0] = beneath[1] = beneath[2] = NULL;
         }
         ~Sprite() { delete model; }
     };
-
-    typedef std::vector<Sprite*> SpriteList;
 
     class DL_Sprites : public ModelLayer {
     public:
@@ -201,7 +195,7 @@ class Model;
         ~DL_Sprites();
 
         /* ---------- DisplayLayer interface ---------- */
-        void draw(const WorldArea &a, int x, int y);
+        void draw(const WorldArea &a, int x, int y) {}
         void draw_onepass();
         void new_world (int, int);
 
@@ -211,8 +205,6 @@ class Model;
         void move_sprite (SpriteId, const ecl::V2& newpos);
         void replace_sprite (SpriteId id, Model *m);
 
-        void draw_sprites (bool shades, const WorldArea &a);
-
         Model *get_model (SpriteId id) { return sprites[id]->model; }
 
         void set_maxsprites (unsigned m, unsigned c) { maxsprites = m; dispensiblesprites = c;}
@@ -220,12 +212,9 @@ class Model;
         Sprite *get_sprite(SpriteId id);
 
         static const SpriteId MAGIC_SPRITEID = 1000000;
-        SpriteList sprites;
-        SpriteList bottomSprites; // bottom sprite for each x
+        std::vector<Sprite*> sprites;
 
     private:
-        void update_sprite_region (Sprite * s, bool is_add);
-        
         // ModelLayer interface
         virtual void tick (double /*dtime*/);
 

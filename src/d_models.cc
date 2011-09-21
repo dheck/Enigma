@@ -373,11 +373,6 @@ void display::DefineAlias (const char *name, const char *othername)
 }
 
 
-/* -------------------- Model -------------------- */
-void Model::get_extension (ecl::Rect &r)
-{}
-
-
 /* -------------------- Image -------------------- */
 
 Image::Image(ecl::Surface *sfc)
@@ -438,21 +433,10 @@ Model *ImageModel::clone() {
     return new ImageModel(image, xoff, yoff); 
 }
 
-void ImageModel::get_extension (ecl::Rect &r) {
-    r.x = xoff;
-    r.y = yoff;
-    r.w = image->rect.w;
-    r.h = image->rect.h;
-}
-
 /* -------------------- ShadowModel -------------------- */
 
 ShadowModel::ShadowModel (Model *m, Model *sh) {
     model=m; shade=sh;
-    ecl::Rect r1, r2;
-    model->get_extension (r1);
-    shade->get_extension (r2);
-    extension = boundingbox (r1, r2);
 }
 
 ShadowModel::~ShadowModel() { 
@@ -496,10 +480,6 @@ Model *ShadowModel::get_shadow() const {
 
 Model *ShadowModel::clone() {
     return new ShadowModel(model->clone(), shade->clone());
-}
-
-void ShadowModel::get_extension (ecl::Rect &r) {
-    r = extension;
 }
 
 /* -------------------- RandomModel -------------------- */
@@ -548,12 +528,6 @@ void Anim2d::restart () {
 
 void Anim2d::add_frame(Model *m, double duration) {
     rep->frames.push_back(new AnimFrame(m, duration));
-    
-    // cache the bounding extension of all frames to ensure that it is constant
-    ecl::Rect r1, r2;
-    m->get_extension (r1);
-    r2 = extension;
-    extension = boundingbox (r1, r2);
 }
 
 void Anim2d::draw(int x, int y) 
@@ -585,10 +559,6 @@ void Anim2d::remove (ModelLayer *ml) {
 void Anim2d::move (int newx, int newy) {
     videox = newx;
     videoy = newy;
-}
-
-void Anim2d::get_extension (ecl::Rect &r) {
-    r = extension;
 }
 
 void Anim2d::tick (double dtime) 

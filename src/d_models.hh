@@ -31,7 +31,6 @@ namespace display
     using std::string;
     using std::vector;
     using ecl::Surface;
-class Model;
 
 /* -------------------- Image -------------------- */
 
@@ -66,12 +65,13 @@ class Model;
         ImageModel (Surface *s, int xo, int yo);
         ImageModel (Surface *s, const ecl::Rect &r, int xo, int yo);
         ~ImageModel();
+
+        Image *get_image() { return image; }
 	
         // Model interface
         void   draw(int x, int y);
         Model *clone();
         void   get_extension (ecl::Rect &r);
-        Image *get_image() { return image; }
     };
 
 /* -------------------- ShadowModel -------------------- */
@@ -143,14 +143,6 @@ class Model;
         }
         Model *clone() {
             return new CompositeModel(bg->clone(), fg->clone());
-        }
-
-        void   get_extension (ecl::Rect &r) {
-            fg->get_extension (r);
-//             ecl::Rect r1, r2;
-//             bg->get_extension (r1);
-//             fg->get_extension (r2);
-//             r = boundingbox (r1, r2);
         }
     };
 
