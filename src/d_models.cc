@@ -17,10 +17,8 @@
  *
  */
 
-#include "display_internal.hh"
 #include "d_models.hh"
 
-//#include "errors.hh"
 #include "lua.hh"
 #include "options.hh"
 #include "d_engine.hh"

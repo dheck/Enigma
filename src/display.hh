@@ -20,7 +20,7 @@
 #define DISPLAY_HH_INCLUDED
 
 #include "enigma.hh"
-#include "ecl.hh"
+#include "ecl_geom.hh"
 #include "server.hh"
 
 //----------------------------------------

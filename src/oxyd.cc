@@ -31,7 +31,7 @@
 #include "server.hh"
 #include "player.hh"
 #include "main.hh"
-
+#include "ecl_system.hh"
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>

@@ -17,9 +17,7 @@
  *
  */
 
-
-#include <memory>
-//#include "main.hh"
+#include "ecl_array2.hh"
 
 namespace enigma {
 

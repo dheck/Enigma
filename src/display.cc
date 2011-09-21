@@ -23,7 +23,8 @@
  * with all its objects and the inventory at the bottom of the screen.
  */
 
-#include "display_internal.hh"
+#include "enigma.hh"
+#include "display.hh"
 #include "client.hh"
 #include "errors.hh"
 #include "main.hh"
@@ -45,25 +46,83 @@ using namespace enigma;
 #include "d_engine.hh"
 #include "d_models.hh"
 
-class dRect {
+
+namespace display {
+
+class TextDisplay {
 public:
-    dRect (double x_, double y_, double w_, double h_) { 
-        x = x_; y = y_; w = w_; h = h_;
-    }
-    double x, y, w, h;
+    TextDisplay(ecl::Font &f);
+    ~TextDisplay();
+
+    void set_text(const std::string &t, bool scrolling, double duration = -1);
+
+    void tick(double dtime);
+    bool has_finished() const { return finishedp; }
+
+    void draw();
+private:
+    ecl::Rect               area;
+    std::string             text;
+    bool                    finishedp;
+    bool                    pingpong;
+    bool                    showscroll;
+    double                  xoff;
+    double                  scrollspeed; // pixels per second
+    ecl::Texture            textTexture;  
+    ecl::Font               &font;
+    double                  time, maxtime;
 };
 
-Rect round_grid (const dRect &r, double w, double h) {
-    double x  = r.x / w ;
-    double y  = r.y / h;
-    double x2 = (r.x + r.w-1) / w;
-    double y2 = (r.y + r.h-1) / h;
+class StatusBarImpl : public StatusBar {
+public:
+    StatusBarImpl (const ScreenArea &area);
+    ~StatusBarImpl();
 
-    Rect s (round_down<int> (x), round_down<int> (y),
-            round_down<int> (x2), round_down<int> (y2));
-    s.w -= s.x-1;
-    s.h -= s.y-1;
-    return s;
+    void draw();
+    void tick (double dtime);
+    void new_world();
+
+    // StatusBar interface.
+    void set_time (double time);
+    void set_inventory(enigma::Player activePlayer, const std::vector<std::string> &modelnames);
+    void show_text (const std::string &str, bool scrolling, double duration);
+    void hide_text();
+
+    void show_move_counter (bool active);
+    void setCMode(bool flag);
+    void setBasicModes(std::string flags);
+
+    void set_speed (double speed);
+    void set_travelled_distance (double distance);
+    void set_counter (int new_counter);
+
+    const ScreenArea &get_area() const { return m_area; }
+
+private:
+    ScreenArea     m_area;
+    ScreenArea     m_itemarea;
+    std::vector<Model*> m_models;
+    enigma::Player player;
+    TextDisplay    m_textview;
+
+    double m_leveltime;
+    bool   m_showtime_p;
+    int    m_counter;
+    bool   m_showcounter_p;
+    bool   m_interruptible; // Current text message may be interrupted
+    bool m_text_active;
+    bool cMode;  // collision mode flag
+    int  playerImage;
+    double playerImageDuration;
+    std::string basicModes;  // set by world on start of level
+    int widthDigit[10];
+    int widthColon;
+    int widthApos;
+    int widthQuote;
+    int maxWidthDigit;
+    bool widthInit;
+};
+
 }
 
 /* -------------------- Local variables -------------------- */
@@ -568,8 +627,16 @@ void DisplayEngine::video_to_screen (int x, int y, int *xx, int *yy)
    function is used for calculating the region that needs to be
    updated when a sprite with extension `r' is moved on the screen. */
 void DisplayEngine::video_to_world (const ecl::Rect &r, Rect &s) {
-    dRect dr (r.x, r.y, r.w, r.h);
-    s = round_grid (dr, get_tilew(), get_tileh());
+    double w = get_tilew(), h = get_tilew();
+    double x  = r.x / w ;
+    double y  = r.y / h;
+    double x2 = (r.x + r.w-1) / w;
+    double y2 = (r.y + r.h-1) / h;
+
+    s = Rect(round_down<int> (x), round_down<int> (y),
+            round_down<int> (x2), round_down<int> (y2));
+    s.w -= s.x-1;
+    s.h -= s.y-1;
 }
 
 

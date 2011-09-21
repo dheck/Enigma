@@ -21,8 +21,6 @@
 #ifndef VIDEO_HH_INCLUDED
 #define VIDEO_HH_INCLUDED
 
-#include <memory>
-#include "SDL.h"
 #include "ecl_fwd.hh"
 #include "ecl_geom.hh"
 
@@ -145,15 +143,10 @@ namespace video
     //! Return the current video mode
     VideoModes GetVideoMode();
 
-    /*! Return the number of bits per pixel in the current video
-      mode. [currently always 16] */
-    int GetColorDepth();
-
-    // ecl::Screen *GetScreen();
     ecl::Rect ScreenSize();
 
-void EnableBackBuffer();
-void DisableBackBuffer();
+    void EnableBackBuffer();
+    void DisableBackBuffer();
     
     void               SetWindowCaption (const char *str);
     const std::string& GetWindowCaption();

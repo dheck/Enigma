@@ -27,6 +27,17 @@
 namespace display
 {
 
+typedef ecl::Rect          ScreenArea;
+typedef ecl::Rect          WorldArea;
+typedef std::list<Model*> ModelList;
+
+using ecl::V2;
+
+class DisplayLayer;
+class StatusBarImpl;
+class Model;
+
+
 /* -------------------- DisplayEngine -------------------- */
 
     class DisplayEngine {

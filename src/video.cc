@@ -27,17 +27,16 @@
  *    predefined effects.
  */
 
-#include "enigma.hh"
 #include "video.hh"
-#include "lua.hh"
+#include "enigma.hh"
 #include "options.hh"
 #include "main.hh"
-#include "ecl.hh"
+#include "ecl_video.hh"
+#include "ecl_system.hh"
 #include <cassert>
 #include <cstdio>
 #include <fstream>
 #include <sstream>
-#include "config.h"
 
 using namespace std;
 using namespace ecl;
@@ -625,9 +624,9 @@ void video::Init()
     assert(bpp==16 || bpp==32);
     int fallback_sequence = 1;
     while (true) {
-        VMInfo *vminfo     = &video_modes[vidmode];
-        int     w          = vminfo->width;
-        int     h          = vminfo->height;
+        VMInfo *vminfo = &video_modes[vidmode];
+        int     w      = vminfo->width;
+        int     h      = vminfo->height;
 
         if (ModeAvailable (static_cast<VideoModes> (vidmode))
             && vm_available (w, h, bpp, isFullScreen)
@@ -691,10 +690,6 @@ VideoModes video::GetVideoMode() {
 bool video::IsFullScreen()
 {
     return (gScreen->flags & SDL_FULLSCREEN) != 0; 
-}
-
-int video::GetColorDepth() {
-    return gScreen->format->BitsPerPixel;
 }
 
 bool video::SetFullscreen(bool on) 

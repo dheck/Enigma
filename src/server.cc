@@ -34,7 +34,7 @@
 #include "StateManager.hh"
 #include "world.hh"
 #include "MusicManager.hh"
-
+#include "SDL.h"
 #include "enet/enet.h"
 
 #ifdef WIN32
