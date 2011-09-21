@@ -30,6 +30,9 @@ namespace enigma_client
     void ClientInit();
     void ClientShutdown();
 
+    bool NetworkStart();
+
+
     void Tick(double dtime);
 
     bool AbortGameP();

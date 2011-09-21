@@ -46,6 +46,8 @@
 #include "lev/PersistentIndex.hh"
 #include "lev/ScoreManager.hh"
 
+#include "enet/enet.h"
+
 #include <locale.h>
 #include <cstdio>
 #include <cstdlib>
@@ -419,6 +421,12 @@ void Application::init(int argc, char **argv)
         exit (1);
     }
     
+    // ----- Initialize UDP network layer
+    if (enet_initialize() != 0) {
+        fprintf (stderr, "An error occurred while initializing ENet.\n");
+        exit (1);
+    }
+
     // ----- Load models
     display::Init(ap.show_fps);
 
@@ -892,6 +900,7 @@ void Application::shutdown()
     app.errorInit = false;
     video::Shutdown();
     sound::Shutdown();
+    enet_deinitialize();
     enigma::ShutdownCurl();
     lua::ShutdownGlobal();
     XMLPlatformUtils::Terminate();
