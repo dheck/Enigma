@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <string>
 #include <cstdlib>
+#include <cstdio>
 #include <cstdarg>
 #include <iostream>
 #include <iomanip>

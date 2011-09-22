@@ -35,6 +35,7 @@
 #include <string>
 #include <cstdlib>
 #include <cstdarg>
+#include <cstdio>
 #include <iostream>
 #include <iomanip>
 
@@ -338,7 +339,7 @@ namespace enigma {
         for (TokenList::iterator tit = targets.begin(); tit != targets.end(); ++tit) {
             action = (ait != actions.end()) ? ait->to_string() : "";
             
-            ObjectList ol = (*tit).getObjectList(this);  // get all or nearest objects described by target token
+            ObjectList ol = tit->getObjectList(this);  // get all or nearest objects described by target token
             if (ol.size() == 0 || (ol.size() == 1 && ol.front() == NULL)) {  // no target object
                 if ((action == "callback" || action.empty()) && (tit->getType() == Value::STRING)) { 
 //                        && lua::IsFunc(lua::LevelState(), tit->get_string())) {
@@ -402,9 +403,9 @@ namespace enigma {
         int i = 0;  // counter for destination candidates
         TokenList tl = getAttr("destination");  // expand any tokens to a list of values
         for (TokenList::iterator tit = tl.begin(); tit != tl.end(); ++tit) {
-            PositionList pl = (*tit).getPositionList(this);  // convert next token to a list of positions
+            PositionList pl = tit->getPositionList(this);  // convert next token to a list of positions
             for (PositionList::iterator pit = pl.begin(); pit != pl.end(); ++pit) {
-                ecl::V2 pos = (*pit).centeredPos();
+                ecl::V2 pos = pit->centeredPos();
                 if (IsInsideLevel(pos))  {  // no positions in inventory,..
                     if (i == idx) {
                         dstpos = pos;
@@ -422,7 +423,7 @@ namespace enigma {
         TokenList targets = getAttr(attr);
         
         for (TokenList::iterator tit = targets.begin(); tit != targets.end(); ++tit) {
-            modified |= (*tit).finalizeNearestObjectReference(this);
+            modified |= tit->finalizeNearestObjectReference(this);
         }
         if (modified) {
             if (attr.find("anchor") == 0) {
