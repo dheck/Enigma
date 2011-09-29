@@ -80,13 +80,11 @@ namespace display
     void DefineAnim (const char *name, bool loop_p);
     void AddFrame (const char *name, const char *model, double time);
     void DefineAlias (const char *name, const char *othername);
-}
 
 //----------------------------------------
 // Models on the grid
 //----------------------------------------
-namespace display
-{
+
     using enigma::GridPos;
     using enigma::GridLayer;
     using enigma::GridLoc;
@@ -96,11 +94,9 @@ namespace display
     void    KillModel (const GridLoc & l);
     Model*  GetModel (const GridLoc & l);
     Model*  YieldModel (const GridLoc & l);
-}
 
 /* -------------------- Scrolling -------------------- */
-namespace display
-{
+
     enum FollowMode {
         FOLLOW_NONEOLD            = 0, // Don't follow any sprite
         FOLLOW_SCROLLING       = 1, // Scroll the screen
@@ -123,11 +119,9 @@ namespace display
     void SetReferencePoint (const ecl::V2 &point);
     void GetReferencePointCoordinates(int *x, int *y);
     void FocusReferencePoint();
-}
 
 /* -------------------- Sprites -------------------- */
-namespace display
-{
+
     enum SpriteLayer {
         SPRITE_ACTOR, SPRITE_EFFECT, SPRITE_DEBRIS
     };
@@ -161,11 +155,8 @@ namespace display
       automatically deleted.  */
     SpriteHandle AddSprite (const ecl::V2 &pos, const char *modelname=0);
 
-}
-
 /* -------------------- Rubber bands -------------------- */
-namespace display
-{
+
     class DL_Lines;
 
     class RubberHandle {
@@ -182,12 +173,9 @@ namespace display
     };
 
     RubberHandle AddRubber (const ecl::V2 &p1, const ecl::V2 &p2, unsigned short rc, unsigned short gc, unsigned short bc, bool isThick);
-}
-
 
 /* -------------------- Status bar -------------------- */
-namespace display
-{
+
     using enigma_player::Inventory;
 
     class StatusBar {
@@ -212,8 +200,6 @@ namespace display
 
     StatusBar *GetStatusBar();
 
-#define STATUSBAR display::GetStatusBar()
-
 /* -------------------- Constants -------------------- */
 
     const int MIN_TextSpeed = 1;
@@ -222,21 +208,6 @@ namespace display
     const int FACTOR_TextSpeed = 20;  // Multiplicative factor for text speed
 
 /* -------------------- Interface to display engine -------------------- */
-
-    enum DisplayFlags
-    {
-        SHOW_FLOOR     = 0x01,
-        SHOW_STONES    = 0x02,
-        SHOW_ITEMS     = 0x04,
-        SHOW_SHADES    = 0x08,
-        SHOW_SPRITES   = 0x10,
-        SHOW_TIME      = 0x20,
-        SHOW_INVENTORY = 0x40,
-        SHOW_ALL       = 0x7f
-    };
-
-    void ToggleFlag(DisplayFlags flag);
-
 
     void Init(bool show_fps = false);
     void Shutdown();

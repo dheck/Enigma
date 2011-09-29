@@ -133,7 +133,6 @@ namespace
     const int NTILESV = 13;     // Default game screen height in tiles
 
 
-    DisplayFlags  display_flags = SHOW_ALL;
     GameDisplay  *gamedpy       = 0;
     bool          ShowFPS       = false;
 
@@ -2012,11 +2011,6 @@ display::AddSprite (const V2& pos, const char *modelname)
 {
     Model *m = modelname ? MakeModel(modelname) : 0;
     return gamedpy->add_sprite (pos, m);
-}
-
-void display::ToggleFlag(DisplayFlags flag)
-{
-    toggle_flags (display_flags, flag);
 }
 
 void display::DrawAll () {
